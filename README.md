@@ -24,8 +24,13 @@ $ python
 >>> print 'hello world'
 >>> function hello(name):
 >>>     print "hello "+name+"!"
->>> hello('sweetie')
+>>> my_name = 'sweetie'
+>>> hello(my_name)
 ```
+
+<!-- BRIEF ASIDE
+show how to save a file and run it from the command line.
+-->
 
 hello django
 --------
@@ -36,7 +41,7 @@ The development runserver can be started in a terminal with the following comman
 $ python manage.py runserver 0.0.0.0:8000
 ```
 
-You can now view the django app on http://[websiteurl]:8000
+You can now view the django app on `http://[websiteurl]:8000`
 
 As you can see, django gives us a very boring looking test page to let us know it is working.
 This page can be replaced by adding a url in `intro/urls.py`.
@@ -47,6 +52,11 @@ urlpatterns = patterns('',
     # Snip!!
 )
 ````
+
+<!-- BRIEF ASIDE
+"What does this do?"
+Try to import views.home from the command line
+-->
 
 Now it needs a function	`home` in a file `views.py`. Create `intro/views.py` and enter in the following:
 
@@ -71,28 +81,140 @@ def home(request):
 
 There is already a template in `intro/templates/base.html`. Add `{{ name }}` to it in the body
 
-*** url - view - render template (slide)
-** simple model (photos)
-*** don't worry about classes!!
-*** outline of the photo table (slide)
-*** what information do we want to show?
-*** create model
-   image = FileField
-   name = CharField
-   uploaded = datetimefield
-   credit = CharField
-   category = charfield + choices
-   mention id
-*** sync db
-** django admin
-*** uncomment 2 lines in urls
-*** uncomment 1 line in settings
-*** create photo.admin and register app
-** template for photo
-*** base.html + extends
-*** add view for photos
-*** add a list of the photos
-** sorl
+Simple Model (photos)
+--------
+
+Start a new django app with `$ python manage.py startapp photo`. Add the following lines to `photo/models.py`. Don't worry about a class is, for now just fake your way through it.
+
+```python
+category_choices = (
+  ('','Uncategorized'),
+  ('work','Work'),
+  ('play','Play),
+)
+
+class Photo(models.Model):
+    src = models.ImageField(upload_to='photos/')
+    name = models.CharField(max_length='100')
+    uploaded = models.DateTimeField(auto_now_add=True)
+    credit = models.CharField(max_length=50,null=True,blank=True)
+    category = models.CharField(max_length=50,blank=True,choices=category_choices)
+```
+
+Now add `photo` to the `INSTALLED_APPS` tuple in `intro/settings.py`. The photo app is now added to your project. However, it is not set up in the database. For that you need to run `$ python manage.py syncdb`. Full documentation on the built in types of fields can be found at:
+
+https://docs.djangoproject.com/en/dev/ref/models/fields/#field-types
+
+<!-- BRIEF ASIDE
+Now would take a break and show off the model from the shell.
+Also it might be useful to show how kwargs work.
+"Take notes, but don't try to follow along. We'll see a lot more of this as we go on.
+-->
+
+The Django Admin - Great power, little responsibility
+--------
+
+Uncomment (remove the # from in front of) these lines in `intro/urls.py`:
+
+```python
+from django.contrib import admin
+admin.autodiscover()
+
+# and down the page in the big list of urls
+    (r'^/admin/',include('admin.urls'),
+```
+
+Uncomment `'django.contrib.admin'` in `INSTALLED_APPS` halfway down the file `intro/settings.py`. The admin is now visible on `/admin/`. The photo app does not appear because it is not registered. Register it by creating `photo/admin.py` with the following content.
+
+```python
+from django.contrib import admin
+from models import Photo
+
+admin.site.register(Photo)
+```
+
+Now photos are accesible through the django admin. Try downloading a few images and adding them to the admin.
+
+<!-- BRIEF ASIDE
+Add choices to the category field.
+Turn auto_now_add on and off to show off what it does
+-->
+
+Connecting views.py and models.py
+--------
+
+Open views.py and add the photos to the `values` dictionary
+
+```python
+from django.template.response import TemplateResponse
+from photo.models import Photo
+
+def home(request):
+    values = {
+        'name': 'Sweetie!',
+	'photos': Photo.objects.all(),
+    }
+    return TemplateResponse(request,'base.html',values)
+```
+
+And inside the body of base.html, print the photos with:
+
+```html
+<ul>
+  {% for photo in photos %}
+  <li>
+    <img src="{{ photo.url }}" alt="{{ photo.name }}" />
+    <p>
+      {{ photo.name }}, by {{ photo.credit }}
+    </p>
+    <p>
+      uploaded on {{ photo.uploaded }}
+    </p>
+  </li>
+  {% empty %}
+  <li>
+    There are no photos :(
+  </li>
+  {% endfor %}
+</ul>
+```
+
+Bonus 3rd party app: sorl.thumbnail
+--------
+
+* Add `sorl-thumbnail==11.12` to `requirements.txt`.
+
+* Run `$ sudo pip install -r requirements.txt`.
+
+* Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
+
+* Change `base.html` to use this new app:
+
+```html
+{% load thumbnail %}
+<ul>
+  {% for photo in photos %}
+  <li>
+    <a href="{{ photo.url }}">
+      {% thumbnail photo.src "200x200" crop="center" as im %}
+      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
+      {% endthumbnail %}
+    </a>
+    <p>
+      {{ photo.name }}, by {{ photo.credit }}
+    </p>
+    <p>
+      uploaded on {{ photo.uploaded }}
+    </p>
+  </li>
+  {% empty %}
+  <li>
+    There are no photos :(
+  </li>
+  {% endfor %}
+</ul>
+```
+
 *** install sorl in requirements
 *** load thumbnail library
 *** show sorl crop tag
