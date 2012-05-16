@@ -1,0 +1,15 @@
+Metadata-Version: 1.0
+Name: django-devserver
+Version: 0.3.2
+Summary: Drop-in replacement for Django's runserver
+Home-page: http://github.com/dcramer/django-devserver
+Author: David Cramer
+Author-email: dcramer@gmail.com
+License: BSD
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development
