@@ -18,8 +18,8 @@ Hello python
 ```python
 $ python
 >>> print 'hello world'
->>> function hello(name):
->>>     print "hello "+name+"!"
+>>> def hello(name):
+        print "hello "+name+"!"
 >>> my_name = 'sweetie'
 >>> hello(my_name)
 ```
