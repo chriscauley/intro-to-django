@@ -44,14 +44,13 @@ This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
 urlpatterns = patterns('',
-    (r'','views.home'),
+    (r'','intro.views.home'),
     # Snip!!
 )
 ````
 
 <!-- BRIEF ASIDE
 "What does this do?"
-Try to import views.home from the command line
 -->
 
 Now it needs a function `home` in a file `views.py`. Create `intro/views.py` and enter in the following:
@@ -83,10 +82,11 @@ Simple Model (photos)
 Start a new django app with `$ python manage.py startapp photo`. Add the following lines to `photo/models.py`. Don't worry about a class is, for now just fake your way through it.
 
 ```python
+from django.db import models
+
 category_choices = (
-  ('','Uncategorized'),
   ('work','Work'),
-  ('play','Play),
+  ('play','Play'),
 )
 
 class Photo(models.Model):
@@ -159,7 +159,7 @@ And inside the body of base.html, print the photos with:
 <ul>
   {% for photo in photos %}
   <li>
-    <img src="{{ photo.url }}" alt="{{ photo.name }}" />
+    <img src="{{ MEDIA_URL }}{{ photo.url }}" alt="{{ photo.name }}" />
     <p>
       {{ photo.name }}, by {{ photo.credit }}
     </p>
@@ -184,6 +184,8 @@ Bonus 3rd party app: sorl.thumbnail
 
 * Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
 
+* run `$ python manage.py syncdb`
+
 * Change `base.html` to use this new app:
 
 ```html
@@ -191,7 +193,7 @@ Bonus 3rd party app: sorl.thumbnail
 <ul>
   {% for photo in photos %}
   <li>
-    <a href="{{ photo.url }}">
+    <a href="{{ MEDIA_URL }}{{ photo.url }}">
       {% thumbnail photo.src "200x200" crop="center" as im %}
       <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
       {% endthumbnail %}
@@ -211,6 +213,7 @@ Bonus 3rd party app: sorl.thumbnail
 </ul>
 ```
 
+<!--
 *** install sorl in requirements
 *** load thumbnail library
 *** show sorl crop tag
@@ -225,3 +228,4 @@ Bonus 3rd party app: sorl.thumbnail
 ** articles app
 ** overwritting the articles admin using 
 ** context processors
+-->
