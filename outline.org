@@ -1,23 +1,58 @@
-* Why django
-** python is developer friendly
+* todo
+  get a few photos in the database to add to photo model
+* night 1
+** Why django
+*** python is developer friendly
    human readable code
    "batteries included"
-** large development community
-** easy(ish) and powerful
-* hello world on the terminal
-** python
-** print 'hello world'
-** white space!!
-   function hello(word):
-     print word
-* hello world
-** runserver
+*** large, open development community
+*** internationalization
+*** easy(ish) and powerful
+** hello world on the terminal
+*** python
+*** print 'hello world'
+*** white space!!
+   function hello(name):
+     print "hello "+name
+** hello world
+*** runserver
    python manage.py runserver 0.0.0.0
-** view in browser
-** url - views - response (slide)
-* templates
-** url - view - render template
-* simple model (photos)
-** don't worry about classes!!
-** outline of the photo table
-** what information do we want to show?
+*** view in browser
+*** url - views - response (slide)
+** templates
+*** url - view - render template (slide)
+** simple model (photos)
+*** don't worry about classes!!
+*** outline of the photo table (slide)
+*** what information do we want to show?
+*** create model
+   image = FileField
+   name = CharField
+   uploaded = datetimefield
+   credit = CharField
+   category = charfield + choices
+   mention id
+*** sync db
+** django admin
+*** uncomment 2 lines in urls
+*** uncomment 1 line in settings
+*** create photo.admin and register app
+** template for photo
+*** base.html + extends
+*** add view for photos
+*** add a list of the photos
+** sorl
+*** install sorl in requirements
+*** load thumbnail library
+*** show sorl crop tag
+*** media directory
+* Night two
+** Static files
+** generic models + tags
+** model inheritance
+** south
+** abstract models
+** extending models with inlines
+** articles app
+** overwritting the articles admin using 
+** context processors
