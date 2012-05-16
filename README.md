@@ -6,10 +6,6 @@ Why django
 
 * python is developer friendly
 
-    batteries included
-
-    human readable code
-
 * large, open development community
 
 * internationalization
@@ -32,7 +28,7 @@ $ python
 show how to save a file and run it from the command line.
 -->
 
-hello django
+Hello django
 --------
 
 The development runserver can be started in a terminal with the following command.
@@ -58,7 +54,7 @@ urlpatterns = patterns('',
 Try to import views.home from the command line
 -->
 
-Now it needs a function	`home` in a file `views.py`. Create `intro/views.py` and enter in the following:
+Now it needs a function `home` in a file `views.py`. Create `intro/views.py` and enter in the following:
 
 ```python
 from django.http import HttpResponse
@@ -152,7 +148,7 @@ from photo.models import Photo
 def home(request):
     values = {
         'name': 'Sweetie!',
-	'photos': Photo.objects.all(),
+        'photos': Photo.objects.all(),
     }
     return TemplateResponse(request,'base.html',values)
 ```
