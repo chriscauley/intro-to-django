@@ -30,7 +30,7 @@ $ python
 hello django
 --------
 
-runserver
+The development runserver can be started in a terminal with the following command.
 
 ```bash
 $ python manage.py runserver 0.0.0.0:8000
@@ -39,7 +39,7 @@ $ python manage.py runserver 0.0.0.0:8000
 You can now view the django app on http://[websiteurl]:8000
 
 As you can see, django gives us a very boring looking test page to let us know it is working.
-This page can be replaced by adding a url in `introtodjango/urls.py`.
+This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
 urlpatterns = patterns('',
@@ -48,7 +48,29 @@ urlpatterns = patterns('',
 )
 ````
 
-** templates
+Now it needs a function	`home` in a file `views.py`. Create `intro/views.py` and enter in the following:
+
+```python
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("Hello Sweetie!")
+```
+
+This is fun, but tedious, so instead we use templates.
+
+```python
+from django.template.response import TemplateResponse
+
+def home(request):
+    values = {
+        'name': 'Sweetie!'
+    }
+    return TemplateResponse(request,'base.html',values)
+```
+
+There is already a template in `intro/templates/base.html`. Add `{{ name }}` to it in the body
+
 *** url - view - render template (slide)
 ** simple model (photos)
 *** don't worry about classes!!

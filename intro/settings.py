@@ -1,5 +1,10 @@
 # Django settings for introtodjango project.
 
+import os, sys
+
+SFILE = __file__
+SPATH = os.path.normpath(os.path.join(os.path.dirname(SFILE)))
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -48,18 +53,18 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = os.path.join(SPATH,"../media")
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = os.path.join(SPATH,"../static")
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -100,15 +105,13 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'introtodjango.urls'
+ROOT_URLCONF = 'intro.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'introtodjango.wsgi.application'
+WSGI_APPLICATION = 'intro.wsgi.application'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+  os.path.join(SPATH,'templates')
 )
 
 INSTALLED_APPS = (
@@ -122,7 +125,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-    #'devserver',
+    'devserver',
     'south',
 )
 
