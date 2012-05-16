@@ -36,7 +36,7 @@ runserver
 $ python manage.py runserver 0.0.0.0:8000
 ```
 
-You can now view the django app on http://<websiteurl>:8000
+You can now view the django app on http://[websiteurl]:8000
 
 As you can see, django gives us a very boring looking test page to let us know it is working.
 This page can be replaced by adding a url in `introtodjango/urls.py`.
