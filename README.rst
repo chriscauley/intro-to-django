@@ -255,6 +255,10 @@ Template filters are applied with the pip like this:
   </tr>
 </table>
 
+| name            |  commands  |  gems  |  library_type |
+| --------------- | ---------- | ------ | ------------- |
+| core/object     |  6         |        |  file         |
+
 <!--
 *** install sorl in requirements
 *** load thumbnail library
