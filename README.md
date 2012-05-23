@@ -44,7 +44,7 @@ This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
 urlpatterns = patterns('',
-    (r'','intro.views.home'),
+    (r'^$','intro.views.home'),
     # Snip!!
 )
 ````
@@ -332,7 +332,7 @@ There is nothing in x<br />
     <td>
 There is nothing in x
     </td>
-    <td>A list of length 4</td>
+    <td></td>
   </tr>
   <tr>
     <td>x = [1,2,3]</td>
@@ -349,9 +349,9 @@ There are {{ x|length }} items in the list<br />
 There are 3 items in this list.
     </td>
     <td>
-`elif` is short for "else if"<br />
-an empty list `[]` would be taken as `False`.<br />
-`elif` and `else` are not required but `endif` is!
+- `elif` is short for "else if"<br />
+- an empty list `[]` would be taken as `False`.<br />
+- `elif` and `else` are not required but `endif` is!
     </td>
   </tr>
   <tr>
@@ -363,8 +363,8 @@ an empty list `[]` would be taken as `False`.<br />
     5/22/2012
     </td>
     <td>
-    `now` requires a formatting string<br />
-    it does not take an `endnow` tag.
+    - `now` requires a formatting string<br />
+    - it does not take an `endnow` tag.
     </td>
   </tr>
   <tr>
@@ -377,15 +377,245 @@ Anything in here will not be printed.<br />
     </td>
     <td></td>
     <td>
-    Useful for documentation and depracation.
+    - Useful for documentation and depracation.
     </td>
   </tr>
 </table>
 
-Custom templates (like thumbnail above) can be loaded with `{% load library_1 library_2 ... %}` as seen above. Full documentation for built in template tags and template filters can be found at:
+Custom templates can be loaded with `{% load thumbnail %}` as seen above. 
+Full documentation for built in template tags and template filters can be found at:
 
 https://docs.djangoproject.com/en/dev/ref/templates/builtins/
 
+Back to the models
+--------
+
+Last time we made a photo model. 
+This time we're going to improve on the (admittedly weak) category system.
+Then we'll add a comment system. 
+First we need to put everything under a migration system to change the database without writting SQL.
+
+* South is already installed! Check `requirements.txt` if you don't believe me.
+
+* Add 'south' to the list of `INSTALLED_APPS` in `settings.py`.
+
+* Add south to the database with `$ python manage.py syncdb`.
+  (`$` implies you run in terminal)
+
+* Create an initial migration with `$ python manage.py schemamigration photo --init`.
+
+* Fake the migration with `$ python manage.py migrate photo --fake`
+
+The photo app is now controlled by south migrations.
+Now we're ready to add a new model and modify the old `Photo` model. 
+This uses a new field `models.ForeignKey`.
+
+```python
+class Category(model.Model):
+    name = models.CharField(max_length='100')
+    private = models.BooleanField(default=False)
+    def __unicode__(self):
+        return self.name
+
+class Photo(models.Model):
+    src = models.ImageField(upload_to='photos/')
+    name = models.CharField(max_length='100')
+    uploaded = models.DateTimeField(auto_now_add=True)
+    credit = models.CharField(max_length=50,null=True,blank=True)
+    #category = models.CharField(max_length=50,blank=True,choices=category_choices)
+    category = models.ForeignKey(Category)
+    def __unicode__(self):
+        return "A photo named " + self.name
+```
+
+* create migration with `$ python manage.py schemamigration --auto photo`
+
+* run migration with `$ python manage.py migrate photo`
+
+* add the following code to the admin file to make category appear (try without looking first).
+
+```python
+from photo.models import Category, Photo
+
+admin.site.register(Category)
+```
+
+Now we can do the same with a comment model. At the end of `models.py` add the following. 
+Then add run `schemamigration` and `migrate` using `manage.py` and we're ready to learn forms.
+
+```python
+class Comment(models.Model):
+    photo = models.ForeignKey(Photo)
+    screenname = models.CharField(max_length=20,null=True,blank=True)
+    text = model.TextField()
+    approved = models.BooleanField(default=False)
+    added_on = models.DateTimeField(auto_now_add=True)
+```
+
+Clean Up the Templates
+--------
+
+With multiple views we'll need a base template to save us a lot of writting. 
+In the templates folder make a file called `home.html`. 
+
+```html
+{% extends "base.html" %}
+
+{% block content %}
+PUT EVERYTHING INSIDE THE &lt;BODY&gt; TAG INSIDE HERE
+{% endblock %}
+```
+
+And replace the body tag inside `base.html` with the following:
+
+```html
+<body>
+<h1>
+  <a href="/">
+    My Photo Gallery!!
+  </a>
+</h1>
+{% block content %}{% endblock %}
+</body>
+```
+
+Change the `TemplateResponse` template string to `"home.html"` like
+
+```python
+    return TemplateResponse(request,'home.html',values)
+```
+
+If you don't have questions at this point, you aren't paying attention.
+
+Display the comments on photo detail page
+--------
+
+Now we need need to add a url, view, and template for adding comments to photos. 
+At this point `urlpatterns` in `urls.py` should look like.
+The url function allows us to give the url a name
+
+```python
+urlpatterns = patterns('',
+    (r'^$','intro.views.home'),
+    url(r'photo/(\d+)/','intro.views.photo_detail',name='photo_detail')
+)
+```
+
+And a view:
+
+```python
+def photo_detail(request,photo_id):
+    photo = Photo.objects.get(id=photo_id)
+    comments = Photo.comment_set.all()
+    comments = comments.filter(approved=True)
+    values = {
+        'photo': photo,
+	'comments': comments,
+    }
+    return TemplateResponse(request,'photo_detail.html',values)
+```
+
+and a template (photo_detail.html in the templates directory):
+
+```html
+{% extends "photo_detail.html" %}
+
+{% block content %}
+<img src="{{ MEDIA_URL }}{{ photo }}" />
+<div>{{ photo.name }}</div>
+
+<ul>
+  {% for comment in comments %}
+  <li>
+    "{{ comment.text }}"
+    <br />
+    {{ comment.screenname }} at {{ comment.added_on }}
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
+```
+
+Fun with Forms!
+--------
+
+We're minutes away from having an (almost) useful app!! 
+Normally you'd have to write a lot of html to show inputs, display errors, and show confirmation.
+But we can generate a generic form using `django.forms.ModelForm`.
+In `views.py`:
+
+```python
+from django import forms
+from photo.models import Comment
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+```
+
+Add `'form': CommentForm(),` to the values dictionary, and that's it!
+We now have all we need to print a form in the template.
+In `photo_detail.html` add the form as a table.
+
+```html
+<form method="POST">
+  <h2>Like what you see? Why not add a comment!</h2>
+  <table>
+  {{form.as_table}}
+  </table>
+  <input type="submit" />
+</form>
+```
+
+Making the form actually do something
+--------
+
+We need to add the data from the request object into the form.
+If the data is clean, save and redirect with a success message.
+
+```python
+from django.http import HttpResponseRedirect
+
+def photo_detail(request,photo_id):
+    photo = Photo.objects.get(id=photo_id)
+    comments = Photo.comment_set.all()
+    comments = comments.filter(approved=True)
+    values = {
+        'photo': photo,
+	'comments': comments,
+    }
+
+    form = CommentForm(request.POST or None)
+    if form.is_valid() and request.method == "POST":
+        comment = form.save()
+	return HttpResponseRedirect(request.path+"?success=true")
+
+    values['form'] = form
+
+    return TemplateResponse(request,'photo_detail.html',values)
+```
+
+We add a conditional, `{% if request.GET.success == 'true' %}`, to display a success message.
+Also we need to to hide the `photo`. In `photo_detail.html`:
+
+```html
+{% if request.GET.success == 'true' %}
+<p>
+  Thank you for your comment! It has been submitted for approval.
+</p>
+{% else %}
+<form method="POST">
+  <h2>Like what you see? Why not add a comment!</h2>
+  <table>
+  {{form.as_table}}
+  </table>
+  <input type="submit" />
+</form>
+{% endif %}
+```
+
+That should do it for the day. 
 
 <!--
 *** install sorl in requirements
