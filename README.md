@@ -589,10 +589,16 @@ Making the form actually do something
 --------
 
 We need to add the data from the request object into the form.
+We also should remove the photo and approved fields because those are not set by the user.
 If the data is clean, save and redirect with a success message.
 
 ```python
 from django.http import HttpResponseRedirect
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        exclude = ('photo','approved')
 
 def photo_detail(request,photo_id):
     photo = Photo.objects.get(id=photo_id)
@@ -601,14 +607,14 @@ def photo_detail(request,photo_id):
     values = {
         'photo': photo,
 	'comments': comments,
+	'success': 'success' in request.GET,
     }
 
     form = CommentForm(request.POST or None)
-    form.fields['photo'].widget = forms.TextInput()
-    form.fields['photo'].clean(photo.id)
-    form.fields['approved'].widget = forms.HiddenInput()
     if form.is_valid() and request.method == "POST":
-        comment = form.save()
+        comment = form.save(commit=False)
+        comment.photo = photo
+        comment.save()
 	return HttpResponseRedirect(request.path+"?success=true")
 
     values['form'] = form
@@ -616,16 +622,17 @@ def photo_detail(request,photo_id):
     return TemplateResponse(request,'photo_detail.html',values)
 ```
 
-We add a conditional, `{% if request.GET.success == 'true' %}`, to display a success message.
+We add a conditional, `{% if request.GET.success %}`, to display a success message.
 Also we need to to hide the `photo`. In `photo_detail.html`:
 
 ```html
-{% if request.GET.success == 'true' %}
+{% if request.GET.success %}
 <p>
   Thank you for your comment! It has been submitted for approval.
 </p>
 {% else %}
 <form method="POST">
+  {% csrf_token %}
   <h2>Like what you see? Why not add a comment!</h2>
   <table>
   {{form.as_table}}
