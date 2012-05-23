@@ -242,25 +242,6 @@ Now in a template `{{ photo }}` has the same effect as writting `A photo named {
 Other than variables the only programming that can be done in templates are done through filters and tags. 
 Template filters are applied with the pip like this:
 
-<table>
-  <tr>
-    <th>variable</th>
-    <th>template input</th>
-    <th>template output</th>
-  </tr>
-  <tr>
-    <td></td>
-    <td>{{ }}</td>
-    <td></td>
-  </tr>
-</table>
-
-```python
-| name            |  commands  |  gems  |  library_type |
-| --------------- | ---------- | ------ | ------------- |
-| core/object     |  6         |        |  file         |
-```
-
 <!--
 *** install sorl in requirements
 *** load thumbnail library
