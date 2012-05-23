@@ -300,15 +300,15 @@ Some tags require an end tag.
     <th>notes</th>
   </tr>
   <tr>
-    <td>a_list = range(4)</td>
+    <td>x = range(4)</td>
     <td>{{ x }}</td>
     <td>[0,1,2,3]</td>
     <td>A list of length 4</td>
   </tr>
   <tr>
-    <td>a_list = range(4)</td>
+    <td>x = range(4)</td>
     <td>
-{% for x in a_list %}<br />
+{% for x in x %}<br />
 {{ x }}<br />
 {% endfor %}
     </td>
@@ -321,28 +321,28 @@ Some tags require an end tag.
     <td></td>
   </tr>
   <tr>
-    <td>a_list = []</td>
+    <td>x = []</td>
     <td>
-{% for x in a_list %}<br />
+{% for x in x %}<br />
 {{ x }}<br />
 {% empty %}<br />
-There is nothing in a_list<br />
+There is nothing in x<br />
 {% endfor %}
     </td>
     <td>
-There is nothing in a_list
+There is nothing in x
     </td>
     <td>A list of length 4</td>
   </tr>
   <tr>
-    <td>a_list = [1,2,3]</td>
+    <td>x = [1,2,3]</td>
     <td>
-{% if a_list|length == 1 %}<br />
-There is one item in this list<br />
-{% elif not a_list %}<br />
-There are no items in this list<br />
+{% if x|length == 1 %}<br />
+There is one item in the list<br />
+{% elif not x %}<br />
+There are no items in the list<br />
 {% else %}<br />
-There are {{ a_list|length }} items in this list<br />
+There are {{ x|length }} items in the list<br />
 {% endif %}
     </td>
     <td>
