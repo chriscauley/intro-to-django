@@ -159,7 +159,7 @@ And inside the body of base.html, print the photos with:
 <ul>
   {% for photo in photos %}
   <li>
-    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
+    <img src="{{ MEDIA_URL }}{{ photo.url }}" alt="{{ photo.name }}" />
     <p>
       {{ photo.name }}, by {{ photo.credit }}
     </p>
@@ -193,7 +193,7 @@ Bonus 3rd party app: sorl.thumbnail
 <ul>
   {% for photo in photos %}
   <li>
-    <a href="{{ MEDIA_URL }}{{ photo.src }}">
+    <a href="{{ MEDIA_URL }}{{ photo.url }}">
       {% thumbnail photo.src "200x200" crop="center" as im %}
       <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
       {% endthumbnail %}
@@ -213,7 +213,7 @@ Bonus 3rd party app: sorl.thumbnail
 </ul>
 ```
 
-Night 1
+Night 2
 ========
 
 The Django Templating Language
@@ -253,26 +253,31 @@ Template filters are applied with the pip like this:
     <td>x = "abcdef"</td>
     <td>{{ x }}</td>
     <td>abcdef</td>
+    <td></td>
   </tr>
   <tr>
     <td>x = "abcdef"</td>
     <td>{{ x|length }}</td>
     <td>6</td>
+    <td></td>
   </tr>
   <tr>
     <td>x = [1,2,3,4,5] </td>
     <td>{{ x|length }}</td>
     <td>5</td>
+    <td></td>
   </tr>
   <tr>
     <td>x = "abcdef"</td>
     <td>{{ x|upper }}</td>
     <td>ABCDEF</td>
+    <td></td>
   </tr>
   <tr>
     <td>x = 5</td>
     <td>{{ x|add:10 }}</td>
     <td>15</td>
+    <td></td>
   <tr>
     <td>x = "arst"</td>
     <td>{{ x|upper|add:" is "|add:x }}</td>
@@ -411,7 +416,7 @@ Now we're ready to add a new model and modify the old `Photo` model.
 This uses a new field `models.ForeignKey`.
 
 ```python
-class Category(model.Model):
+class Category(models.Model):
     name = models.CharField(max_length='100')
     private = models.BooleanField(default=False)
     def __unicode__(self):
@@ -447,7 +452,7 @@ Then add run `schemamigration` and `migrate` using `manage.py` and we're ready t
 class Comment(models.Model):
     photo = models.ForeignKey(Photo)
     screenname = models.CharField(max_length=20,null=True,blank=True)
-    text = model.TextField()
+    text = models.TextField()
     approved = models.BooleanField(default=False)
     added_on = models.DateTimeField(auto_now_add=True)
 ```
@@ -497,31 +502,41 @@ The url function allows us to give the url a name
 ```python
 urlpatterns = patterns('',
     (r'^$','intro.views.home'),
-    url(r'photo/(\d+)/','intro.views.photo_detail',name='photo_detail')
+    url(r'^photo/(\d+)/$','intro.views.photo_detail',name='photo_detail')
 )
 ```
 
-And a view:
+Since there is no where that links to the `photo_detail` view, we need to modify `home.html`.
+We use the template tag url like `{% url url_name arg1 arg2 ... %}`.
+The url name was set in `urls.py` as `'photo_detail'`.
+The only argument is the `photo.id` (the bit in parenthesis in the url string).
+Django automatically looks up what url matches this and prints it as the tag output.
+
+```html
+    <a href="{% url photo_detail photo.id %}"> 
+```
+
+And we need a view at `'intro.views.photo_detail'`:
 
 ```python
 def photo_detail(request,photo_id):
     photo = Photo.objects.get(id=photo_id)
-    comments = Photo.comment_set.all()
+    comments = photo.comment_set.all()
     comments = comments.filter(approved=True)
     values = {
         'photo': photo,
-	'comments': comments,
+        'comments': comments,
     }
     return TemplateResponse(request,'photo_detail.html',values)
 ```
 
-and a template (photo_detail.html in the templates directory):
+and a template (`photo_detail.html` in the templates directory):
 
 ```html
-{% extends "photo_detail.html" %}
+{% extends "base.html" %}
 
 {% block content %}
-<img src="{{ MEDIA_URL }}{{ photo }}" />
+<img src="{{ MEDIA_URL }}{{ photo.src }}" />
 <div>{{ photo.name }}</div>
 
 <ul>
@@ -531,6 +546,8 @@ and a template (photo_detail.html in the templates directory):
     <br />
     {{ comment.screenname }} at {{ comment.added_on }}
   </li>
+  {% empty %}
+  <li>There are no comments.</li>
   {% endfor %}
 </ul>
 
@@ -572,10 +589,16 @@ Making the form actually do something
 --------
 
 We need to add the data from the request object into the form.
+We also should remove the photo and approved fields because those are not set by the user.
 If the data is clean, save and redirect with a success message.
 
 ```python
 from django.http import HttpResponseRedirect
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        exclude = ('photo','approved')
 
 def photo_detail(request,photo_id):
     photo = Photo.objects.get(id=photo_id)
@@ -584,11 +607,14 @@ def photo_detail(request,photo_id):
     values = {
         'photo': photo,
 	'comments': comments,
+	'success': 'success' in request.GET,
     }
 
     form = CommentForm(request.POST or None)
     if form.is_valid() and request.method == "POST":
-        comment = form.save()
+        comment = form.save(commit=False)
+        comment.photo = photo
+        comment.save()
 	return HttpResponseRedirect(request.path+"?success=true")
 
     values['form'] = form
@@ -596,16 +622,17 @@ def photo_detail(request,photo_id):
     return TemplateResponse(request,'photo_detail.html',values)
 ```
 
-We add a conditional, `{% if request.GET.success == 'true' %}`, to display a success message.
+We add a conditional, `{% if request.GET.success %}`, to display a success message.
 Also we need to to hide the `photo`. In `photo_detail.html`:
 
 ```html
-{% if request.GET.success == 'true' %}
+{% if request.GET.success %}
 <p>
   Thank you for your comment! It has been submitted for approval.
 </p>
 {% else %}
 <form method="POST">
+  {% csrf_token %}
   <h2>Like what you see? Why not add a comment!</h2>
   <table>
   {{form.as_table}}
