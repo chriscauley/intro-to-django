@@ -255,7 +255,7 @@ Template filters are applied with the pip like this:
   </tr>
 </table>
 
-```html
+```python
 | name            |  commands  |  gems  |  library_type |
 | --------------- | ---------- | ------ | ------------- |
 | core/object     |  6         |        |  file         |
