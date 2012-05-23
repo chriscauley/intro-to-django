@@ -159,7 +159,7 @@ And inside the body of base.html, print the photos with:
 <ul>
   {% for photo in photos %}
   <li>
-    <img src="{{ MEDIA_URL }}{{ photo.url }}" alt="{{ photo.name }}" />
+    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
     <p>
       {{ photo.name }}, by {{ photo.credit }}
     </p>
@@ -193,7 +193,7 @@ Bonus 3rd party app: sorl.thumbnail
 <ul>
   {% for photo in photos %}
   <li>
-    <a href="{{ MEDIA_URL }}{{ photo.url }}">
+    <a href="{{ MEDIA_URL }}{{ photo.src }}">
       {% thumbnail photo.src "200x200" crop="center" as im %}
       <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
       {% endthumbnail %}
