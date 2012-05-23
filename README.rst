@@ -213,6 +213,48 @@ Bonus 3rd party app: sorl.thumbnail
 </ul>
 ```
 
+Night 1
+========
+
+The Django Templating Language
+--------
+
+Template variables are are passed in as the third argument to a `TemplateResponse`. 
+This is a dictionary, usually called "values". 
+Any variable can be printed by placing the `{{ variable_name }}` in braces in a template. 
+Any functions are executed, anything else is converted to strings. 
+Any attribute can be called with a dot like `{{ variable_name.attribute }}`. 
+For models, this is set with the `__unicode__` magic method. 
+
+```python
+class Photo(models.Model):
+    src = models.ImageField(upload_to='photos/')
+    name = models.CharField(max_length='100')
+    uploaded = models.DateTimeField(auto_now_add=True)
+    credit = models.CharField(max_length=50,null=True,blank=True)
+    category = models.CharField(max_length=50,blank=True,choices=category_choices)
+    def __unicode__(self):
+        return "A photo named " + self.name
+```
+
+Now in a template `{{ photo }}` has the same effect as writting `A photo named {{ photo.name }}`.
+
+Other than variables the only programming that can be done in templates are done through filters and tags. 
+Template filters are applied with the pip like this:
+
+<table>
+  <tr>
+    <th>variable</th>
+    <th>template input</th>
+    <th>template output</th>
+  </tr>
+  <tr>
+    <td></td>
+    <td>{{ }}</td>
+    <td></td>
+  </tr>
+</table>
+
 <!--
 *** install sorl in requirements
 *** load thumbnail library
