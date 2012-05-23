@@ -312,10 +312,79 @@ Some tags require an end tag.
 {{ x }}<br />
 {% endfor %}
     </td>
-    <td>[0,1,2,3]</td>
+    <td>
+0<br />
+1<br />
+2<br />
+3
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>a_list = []</td>
+    <td>
+{% for x in a_list %}<br />
+{{ x }}<br />
+{% empty %}
+There is nothing in a_list
+{% endfor %}
+    </td>
+    <td>
+There is nothing in a_list
+    </td>
     <td>A list of length 4</td>
   </tr>
+  <tr>
+    <td>a_list = [1,2,3]</td>
+    <td>
+{% if a_list|length == 1 %}
+There is one item in this list
+{% elif not a_list %}
+There are no items in this list
+{% else %}
+There are {{ a_list|length }} items in this list
+{% endif %}
+    </td>
+    <td>
+There are 3 items in this list.
+    </td>
+    <td>
+`elif` is short for "else if"<br />
+an empty list `[]` would be taken as `False`.<br />
+`elif` and `else` are not required but `endif` is!
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>
+    {% now "m/d/Y" %}
+    </td>
+    <td>
+    5/22/2012
+    </td>
+    <td>
+    `now` requires a formatting string<br />
+    it does not take an `endnow` tag.
+    </td>
+  </tr>
+  <tr>
+    <td>x = 'my name is chris'</td>
+    <td>
+{% comment %}
+Anything in here will not be printed.
+{{ x }}
+{% endcomment %}
+    </td>
+    <td></td>
+    <td>
+    Useful for documentation and depracation.
+    </td>
+  </tr>
 </table>
+
+Custom templates (like thumbnail above) can be loaded with `{% load library_1 library_2 ... %}` as seen above. Full documentation for built in template tags and template filters can be found at:
+
+https://docs.djangoproject.com/en/dev/ref/templates/builtins/
 
 
 <!--
