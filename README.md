@@ -247,6 +247,7 @@ Template filters are applied with the pip like this:
     <th>python</th>
     <th>template input</th>
     <th>template output</th>
+    <th>notes</th>
   </tr>
   <tr>
     <td>x = "abcdef"</td>
@@ -259,25 +260,63 @@ Template filters are applied with the pip like this:
     <td>6</td>
   </tr>
   <tr>
-    <td>x = "abcdef"</td>
-    <td>{{ x|upper }}</td>
-    <td>ABCDEF</td>
-  </tr>
-  <tr>
     <td>x = [1,2,3,4,5] </td>
     <td>{{ x|length }}</td>
     <td>5</td>
   </tr>
   <tr>
-    <td>x = [1,2,3,4,5]</td>
+    <td>x = "abcdef"</td>
+    <td>{{ x|upper }}</td>
+    <td>ABCDEF</td>
+  </tr>
+  <tr>
+    <td>x = 5</td>
     <td>{{ x|add:10 }}</td>
     <td>15</td>
   <tr>
     <td>x = "arst"</td>
-    <td>{{ x|upper|add:" is a friend of mine." }}</td>
-    <td>ARST is a friend of mine</td>
+    <td>{{ x|upper|add:" is "|add:x }}</td>
+    <td>ARST is arst</td>
+    <td>Template filter argument can be a variable.</td>
+  </tr>
+  <tr>
+    <td>x = "arst"</td>
+    <td>{{ x|add:5 }}</td>
+    <td></td>
+    <td>Can't add int and string, fails silently</td>
   </tr>
 </table>
+
+As you can see there is a lot you can do by "piping" variables together. 
+Simple programming tools are available int tags.
+Tags are denoted with braces and percents `{% tag %}`. 
+Some tags require an end tag.
+
+<table>
+  <tr>
+    <th>python</th>
+    <th>template input</th>
+    <th>template output</th>
+    <th>notes</th>
+  </tr>
+  <tr>
+    <td>a_list = range(4)</td>
+    <td>{{ x }}</td>
+    <td>[0,1,2,3]</td>
+    <td>A list of length 4</td>
+  </tr>
+  <tr>
+    <td>a_list = range(4)</td>
+    <td>
+{% for x in a_list %}
+{{ x }}
+{% endfor %}
+    </td>
+    <td>[0,1,2,3]</td>
+    <td>A list of length 4</td>
+  </tr>
+</table
+
 
 <!--
 *** install sorl in requirements
