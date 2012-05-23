@@ -244,22 +244,40 @@ Template filters are applied with the pip like this:
 
 <table>
   <tr>
-    <th>variable</th>
+    <th>python</th>
     <th>template input</th>
     <th>template output</th>
   </tr>
   <tr>
-    <td></td>
-    <td>{{ }}</td>
-    <td></td>
+    <td>x = "abcdef"</td>
+    <td>{{ x }}</td>
+    <td>abcdef</td>
+  </tr>
+  <tr>
+    <td>x = "abcdef"</td>
+    <td>{{ x|length }}</td>
+    <td>6</td>
+  </tr>
+  <tr>
+    <td>x = "abcdef"</td>
+    <td>{{ x|upper }}</td>
+    <td>ABCDEF</td>
+  </tr>
+  <tr>
+    <td>x = [1,2,3,4,5] </td>
+    <td>{{ x|length }}</td>
+    <td>5</td>
+  </tr>
+  <tr>
+    <td>x = [1,2,3,4,5]</td>
+    <td>{{ x|add:10 }}</td>
+    <td>15</td>
+  <tr>
+    <td>x = "arst"</td>
+    <td>{{ x|upper|add:" is a friend of mine." }}</td>
+    <td>ARST is a friend of mine</td>
   </tr>
 </table>
-
-<pre>
-| name            |  commands  |  gems  |  library_type |
-| --------------- | ---------- | ------ | ------------- |
-| core/object     |  6         |        |  file         |
-</pre>
 
 <!--
 *** install sorl in requirements
