@@ -325,8 +325,8 @@ Some tags require an end tag.
     <td>
 {% for x in a_list %}<br />
 {{ x }}<br />
-{% empty %}
-There is nothing in a_list
+{% empty %}<br />
+There is nothing in a_list<br />
 {% endfor %}
     </td>
     <td>
@@ -337,12 +337,12 @@ There is nothing in a_list
   <tr>
     <td>a_list = [1,2,3]</td>
     <td>
-{% if a_list|length == 1 %}
-There is one item in this list
-{% elif not a_list %}
-There are no items in this list
-{% else %}
-There are {{ a_list|length }} items in this list
+{% if a_list|length == 1 %}<br />
+There is one item in this list<br />
+{% elif not a_list %}<br />
+There are no items in this list<br />
+{% else %}<br />
+There are {{ a_list|length }} items in this list<br />
 {% endif %}
     </td>
     <td>
@@ -370,9 +370,9 @@ an empty list `[]` would be taken as `False`.<br />
   <tr>
     <td>x = 'my name is chris'</td>
     <td>
-{% comment %}
-Anything in here will not be printed.
-{{ x }}
+{% comment %}<br />
+Anything in here will not be printed.<br />
+{{ x }}<br />
 {% endcomment %}
     </td>
     <td></td>
