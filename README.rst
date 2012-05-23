@@ -255,9 +255,11 @@ Template filters are applied with the pip like this:
   </tr>
 </table>
 
+<pre>
 | name            |  commands  |  gems  |  library_type |
 | --------------- | ---------- | ------ | ------------- |
 | core/object     |  6         |        |  file         |
+</pre>
 
 <!--
 *** install sorl in requirements
