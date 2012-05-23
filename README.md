@@ -308,14 +308,14 @@ Some tags require an end tag.
   <tr>
     <td>a_list = range(4)</td>
     <td>
-{% for x in a_list %}
-{{ x }}
+{% for x in a_list %}<br />
+{{ x }}<br />
 {% endfor %}
     </td>
     <td>[0,1,2,3]</td>
     <td>A list of length 4</td>
   </tr>
-</table
+</table>
 
 
 <!--
