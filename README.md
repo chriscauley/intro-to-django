@@ -213,7 +213,7 @@ Bonus 3rd party app: sorl.thumbnail
 </ul>
 ```
 
-Night 1
+Night 2
 ========
 
 The Django Templating Language

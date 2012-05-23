@@ -3,6 +3,27 @@
   
   </head>
   <body>
-    Hello unnamed person!
+    {% load thumbnail %}
+    <ul>
+      {% for photo in photos %}
+      <li>
+	<a href="{{ MEDIA_URL }}{{ photo.src }}">
+	  {% thumbnail photo.src "200x200" crop="center" as im %}
+	  <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
+	  {% endthumbnail %}
+	</a>
+	<p>
+	  {{ photo.name }}, by {{ photo.credit }}
+	</p>
+	<p>
+	  uploaded on {{ photo.uploaded }}
+	</p>
+      </li>
+      {% empty %}
+      <li>
+	There are no photos :(
+      </li>
+      {% endfor %}
+    </ul>
   </body>
 </html>
