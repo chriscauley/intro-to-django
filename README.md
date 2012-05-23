@@ -602,7 +602,7 @@ class CommentForm(forms.ModelForm):
 
 def photo_detail(request,photo_id):
     photo = Photo.objects.get(id=photo_id)
-    comments = Photo.comment_set.all()
+    comments = photo.comment_set.all()
     comments = comments.filter(approved=True)
     values = {
         'photo': photo,
