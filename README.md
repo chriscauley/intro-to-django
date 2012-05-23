@@ -612,6 +612,9 @@ Also we need to to hide the `photo`. In `photo_detail.html`:
   </table>
   <input type="submit" />
 </form>
+<style type="text/css">
+#id_photo { display: none; }
+</style>
 {% endif %}
 ```
 
