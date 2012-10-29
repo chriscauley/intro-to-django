@@ -43,7 +43,8 @@ As you can see, django gives us a very boring looking test page to let us know i
 This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     (r'^$','intro.views.home'),
     # Snip!!
 )
