@@ -6,7 +6,7 @@ Why django
 
 * python is developer friendly
 
-* large, open development community
+* large, open development community (djangopackages.com)
 
 * internationalization
 
@@ -54,7 +54,7 @@ urlpatterns = patterns(
 "What does this do?"
 -->
 
-Now it needs a function `home` in a file `views.py`. Create `intro/views.py` and enter in the following:
+Now it needs a function `home` in a module `intro.views`. Create `intro/views.py` and enter in the following:
 
 ```python
 from django.http import HttpResponse
