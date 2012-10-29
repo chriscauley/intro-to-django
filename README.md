@@ -6,7 +6,7 @@ Why django
 
 * python is developer friendly
 
-* large, open development community (djangopackages.com)
+* large, open development community
 
 * internationalization
 
@@ -43,8 +43,7 @@ As you can see, django gives us a very boring looking test page to let us know i
 This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns('',
     (r'^$','intro.views.home'),
     # Snip!!
 )
@@ -54,7 +53,7 @@ urlpatterns = patterns(
 "What does this do?"
 -->
 
-Now it needs a function `home` in a module `intro.views`. Create `intro/views.py` and enter in the following:
+Now it needs a function `home` in a file `views.py`. Create `intro/views.py` and enter in the following:
 
 ```python
 from django.http import HttpResponse
@@ -644,6 +643,195 @@ Also we need to to hide the `photo`. In `photo_detail.html`:
 ```
 
 That should do it for the day. 
+
+Night 3
+========
+
+Classes
+--------
+
+Previously we've ignored the nature of a python class.
+To manipulate the Django Admin interface, we'll need to know a little bit more.
+In python "everything is an object".
+This means every variable, piece of data, etc. has methods and properties.
+To see a list of these, you need to simply use the `dir` function on any object.
+From the terminal try the following:
+
+```python
+$ python manage.py shell
+>>> x = 'monkey'
+>>> dir(x)
+['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__init__', '__le__', '__len__', '__lt__', '__mod__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__rmod__', '__rmul__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '_formatter_field_name_split', '_formatter_parser', 'capitalize', 'center', 'count', 'decode', 'encode', 'endswith', 'expandtabs', 'find', 'format', 'index', 'isalnum', 'isalpha', 'isdigit', 'islower', 'isspace', 'istitle', 'isupper', 'join', 'ljust', 'lower', 'lstrip', 'partition', 'replace', 'rfind', 'rindex', 'rjust', 'rpartition', 'rsplit', 'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase', 'title', 'translate', 'upper', 'zfill']
+```
+
+That's super unreadable. To get a more readable list let's create a function, `print_dir`
+
+```python
+>>> def print_dir(obj):
+...    for string in obj:
+...        print string
+...
+>>> print_dir(x)
+```
+
+I supressed the output for brevity. 
+A class is a generic object that can be used to make objects. 
+By convention, classes are written in CamelCase.
+
+```python
+>>> class BarrelOfMonkeys():
+...     count=0
+...     def add(self,number):
+...         self.count = self.count + number
+...     def add_one(self):
+...         self.add(1)
+>>> barrel = BarrelOfMonkeys()
+>>> print barrel.count
+0
+>>> barrel.add(5)
+>>> print barrel.count
+5
+```
+
+Here `count` is a property, accessed like `some_object.some_property`,
+`add` is a method. Methods need at least one argument, `self` which is used to refer to the object.
+Methods are functions and must be called like 'some_object.some_method(arg1,arg2...)`
+Self is automatically passed in and should not be written in when the object is called.
+
+Classes can inherit from other classes. 
+The new class has all the methods and attributes of the old class.
+
+```python
+>>> class BetterBarrel(BarrelOfMonkeys):
+...     max = 10
+...     def remaining(self):
+...         return self.max - self.count
+...     def add(self,number):
+...         if self.count == self.max:
+...             print "Barrel is full, sorry."
+...             return
+...         if self.count + number > self.max:
+...             print "There is only room for " + str(self.remaining()) + " more monkey(s)."
+...             return
+...         self.count = self.count + number
+>>> barrel2 = BetterBarrel()
+>>> barrel2.add(9)
+>>> barrel2.add(5000)
+There is only room for one more monkey(s).
+```
+
+Anytime a method/property has the same name as the old class it is overwritten.
+Throughout the class we have been doing this with two classes `django.db.models.Model`
+and `django.contrib.admin.ModelAdmin`.
+Now we're going to overwrite a lot of methods on the `ModelAdmin` class.
+
+Modifying the Admin - List View
+--------
+
+`ModelAdmin` and all subclasses of it are used to display model in the admin interface (derp).
+Visit 
+https://docs.djangoproject.com/en/1.4/ref/contrib/admin/#modeladmin-options 
+for a comprehensive list of ModelAdmin options.
+
+The admin consists of the Index (`/admin/`),
+app index (`/admin/<app-name>/`),
+list view (`/admin/<app-name>/<model-name>/`),
+and change-list view (`/admin/<app-name>/<model-name>/<id>/`).
+All of these urls were set up when you put `(r'^admin/',include(admin.urls)),` in `urls.py`.
+
+By default, the list view only shows `__unicode__` for every object.
+This can be modified by changing the list_display option. 
+In `photo/admin.py` create a `CommentAdmin` class and add it to the comment register function
+
+```python
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('screenname','photo','text','approved')
+
+admin.site.register(Comment,CommentAdmin)
+```
+
+Now if you look at the list view in the admin (`/admin/photo/comment`) you'll see more columns.
+Additionally we can make models editable from the admin interface. 
+`list_filter` can be set so that you can view only approved or unapproved comments.
+
+```python
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('screenname','photo','text','approved')
+    list_editable = ('approved',)
+    list_filter = ('approved',)
+```
+
+Notice the trailing comma in list editable. A tuple with only one entry needs this.
+
+Any method or property on the Comment model can be put into the list.
+Additionally, methods on the 
+
+```python
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__','screenname','edit_photo','text','approved')
+    list_editable = ('approved',)
+    list_filter = ('approved',)
+    def edit_photo(self,obj):
+        return "<a href='/admin/photo/photo/"+str(obj.photo.id)+"'>"+obj.photo.name+"</a>"
+    edit_photo.allow_tags = True
+```
+
+Now the photo can be edited by clicking the link!
+
+Modifying the Admin - Change List View
+--------
+
+The above problem can also be solved by modifying the change view using `admin.TabularInline`.
+This creates a mini change view at the bottom of a Model's page for modifying another model.
+The following all of a given Photo's comments to be seen/modified from that Photo's change view.
+
+```python
+class CommentInline(admin.TabularInline):
+    model = Comment
+
+class PhotoAdmin(admin.ModelAdmin):
+    inlines = [CommentInline]
+
+admin.site.register(Photo,PhotoAdmin)
+```
+
+Typically the admin is accessed by various users.
+You are a superuser, which means you can do what you like.
+However, you may want to prevent other users from modifying anything but the `approved` field.
+This is done with `readonly_fields` options.
+
+```python
+class CommentInline(admin.TabularInline):
+    model = Comment
+    readonly_fields = ('screenname','text')
+```
+
+Brief Aside - Templates
+--------
+
+When modifying a 3rd party app, it is best to extend it rather than modify any existing code.
+Let's look at this with the admin. At the command prompt run:
+
+```python
+$ python
+>>> import django
+>>> django.__path__
+```
+
+This will print the location of the files used to run django.
+Normally you'd leave it here, but we're going to copy it for easy access.
+Exit python (ctrl + d) and type the following using the output from above:
+
+```bash
+$ cp -r <path-from-above> ~/projects/
+```
+
+Create a folder called `admin` in the `intro/templates` folder in your app.
+Create an empty file called `login.html` in the new `intro/templates/login/` folder
+Refresh the file browser and locate `django/contrib/admin/templates/admin`.
+These are the admin templates.
+Copy and paste the contents of `login.html` into the new file.
+Modify anything and save!
 
 <!--
 *** install sorl in requirements
