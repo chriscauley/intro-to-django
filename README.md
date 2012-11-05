@@ -611,7 +611,7 @@ def photo_detail(request,photo_id):
     }
 
     form = CommentForm(request.POST or None)
-    if form.is_valid() and request.method == "POST":
+    if request.method == "POST" and form.is_valid(): # The order is important here
         comment = form.save(commit=False)
         comment.photo = photo
         comment.save()
@@ -621,6 +621,8 @@ def photo_detail(request,photo_id):
 
     return TemplateResponse(request,'photo_detail.html',values)
 ```
+
+The reason the order of `if request.method == "POST" and form.is_valid():` is important is that and "truncates" in python. If `request.method` is not `"POST"`, then the and statement will return `False` without checking `form.is_valid()`. When you validate a form by calling `form.is_valid()`, it applies the error messages (since the form is empty, there will be errors).
 
 We add a conditional, `{% if request.GET.success %}`, to display a success message.
 Also we need to to hide the `photo`. In `photo_detail.html`:
