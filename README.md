@@ -606,8 +606,8 @@ def photo_detail(request,photo_id):
     comments = comments.filter(approved=True)
     values = {
         'photo': photo,
-	'comments': comments,
-	'success': 'success' in request.GET,
+        'comments': comments,
+        'success': 'success' in request.GET,
     }
 
     form = CommentForm(request.POST or None)
@@ -615,7 +615,7 @@ def photo_detail(request,photo_id):
         comment = form.save(commit=False)
         comment.photo = photo
         comment.save()
-	return HttpResponseRedirect(request.path+"?success=true")
+        return HttpResponseRedirect(request.path+"?success=true")
 
     values['form'] = form
 
