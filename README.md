@@ -733,10 +733,16 @@ Visit
 https://docs.djangoproject.com/en/1.4/ref/contrib/admin/#modeladmin-options 
 for a comprehensive list of ModelAdmin options.
 
-The admin consists of the Index (`/admin/`),
+The admin consists of:
+
+Index (`/admin/`),
+
 app index (`/admin/<app-name>/`),
+
 list view (`/admin/<app-name>/<model-name>/`),
+
 and change-list view (`/admin/<app-name>/<model-name>/<id>/`).
+
 All of these urls were set up when you put `(r'^admin/',include(admin.urls)),` in `urls.py`.
 
 By default, the list view only shows `__unicode__` for every object.
@@ -833,19 +839,51 @@ These are the admin templates.
 Copy and paste the contents of `login.html` into the new file.
 Modify anything and save!
 
-<!--
-*** install sorl in requirements
-*** load thumbnail library
-*** show sorl crop tag
-*** media directory
-* Night two
-** Static files
-** generic models + tags
-** model inheritance
-** south
-** abstract models
-** extending models with inlines
-** articles app
-** overwritting the articles admin using 
-** context processors
--->
+Modfying a 3rd party app
+--------
+
+We'll start by installing a third party app, say django-blog-zinnia. You can find new apps by looking through djangopackages.org or by googling and finding new apps on git hub. Here's the installation documentaiton for Zinnia:
+
+http://django-blog-zinnia.readthedocs.org/en/latest/getting-started/install.html
+
+The easiest way to install this is using pip:
+
+`$ pip install django-blog-zinnia`
+
+It also says we need to install django-mptt, django-tagging, and BeautifulSoup, all of which are installed by pip when you execute the above command. Zinnia's documentation also says to add the following to `INSTALLED_APPS` in `settings.py`:
+
+```python
+INSTALLED_APPS = (
+    ...
+    'django.contrib.comments',
+    'tagging',
+    'mptt',
+    'zinnia',
+    )
+```
+
+And we need to add the following `TEPLATE_CONTEST_PROCESSORS`:
+
+```python
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.request',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'zinnia.context_processors.version',) # Optional
+```
+
+This is all rather high level stuff that we don't need to worry about. Finally we add the Zinnia urls to `urls.py` in the `urlpatterns = patterns(...` variable. Zinnia offers a high level of customization of urls, but we're only worried about the blog.
+
+```python
+    url(r'^weblog/', include('zinnia.urls')),
+    url(r'^comments/', include('django.contrib.comments.urls')),
+```
+
+Now we only need to syncdb and migrate!
+
+```python
+$ python manage.py syncdb
+$ python manage.py migrate
+```
