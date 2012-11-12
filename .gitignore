@@ -1,3 +1,6 @@
 *~
 *.pyc
 \#*
+env/*
+intro/intro.db
+media/*

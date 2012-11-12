@@ -606,23 +606,21 @@ def photo_detail(request,photo_id):
     comments = comments.filter(approved=True)
     values = {
         'photo': photo,
-	'comments': comments,
-	'success': 'success' in request.GET,
+        'comments': comments,
+        'success': 'success' in request.GET,
     }
 
     form = CommentForm(request.POST or None)
-    if request.method == "POST" and form.is_valid(): # The order is important here
+    if form.is_valid() and request.method == "POST":
         comment = form.save(commit=False)
         comment.photo = photo
         comment.save()
-	return HttpResponseRedirect(request.path+"?success=true")
+        return HttpResponseRedirect(request.path+"?success=true")
 
     values['form'] = form
 
     return TemplateResponse(request,'photo_detail.html',values)
 ```
-
-The reason the order of `if request.method == "POST" and form.is_valid():` is important is that and "truncates" in python. If `request.method` is not `"POST"`, then the and statement will return `False` without checking `form.is_valid()`. When you validate a form by calling `form.is_valid()`, it applies the error messages (since the form is empty, there will be errors).
 
 We add a conditional, `{% if request.GET.success %}`, to display a success message.
 Also we need to to hide the `photo`. In `photo_detail.html`:
@@ -649,8 +647,99 @@ That should do it for the day.
 Night 3
 ========
 
+Modfying a 3rd party app
+--------
+
+Previously we've been looking at writing django applications from scratch. But if you wrote everything from scratch you'd never launch a site. So now we're going to look at adding a new application and then tie our previous models into the application
+
+We'll start by installing a third party app, say django-blog-zinnia. You can find new apps by looking through djangopackages.org or by googling and finding new apps on git hub. Here's the installation documentaiton for Zinnia:
+
+http://django-blog-zinnia.readthedocs.org/en/latest/getting-started/install.html
+
+The easiest way to install this is using pip:
+
+`$ sudo pip install django-blog-zinnia`
+
+It also says we need to install django-mptt, django-tagging, and BeautifulSoup, all of which are installed by pip when you execute the above command. Zinnia's documentation also says to add the following to `INSTALLED_APPS` in `settings.py`:
+
+```python
+INSTALLED_APPS = (
+    ...
+    'django.contrib.comments',
+    'tagging',
+    'mptt',
+    'zinnia',
+    'photo',
+    )
+```
+
+It is important that you put photo after zinnia because we want `admin.autodiscover()` to execute the admin files in that order.
+
+And we need to add the following `TEMPLATE_CONTEST_PROCESSORS`:
+
+```python
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.request',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'zinnia.context_processors.version',) # Optional
+```
+
+This is all rather high level stuff that we don't need to worry about. Finally we add the Zinnia urls to `urls.py` in the `urlpatterns = patterns(...` variable. Zinnia offers a high level of customization of urls, but we're only worried about the blog.
+
+```python
+    url(r'^weblog/', include('zinnia.urls')),
+    url(r'^comments/', include('django.contrib.comments.urls')),
+```
+
+Now we only need to syncdb and migrate!
+
+```python
+$ python manage.py syncdb
+$ python manage.py migrate
+```
+
+Navigate to `/admin/` and `/weblog/` in a web browser and you'll see what looks like a complete website with little code.
+
+Brief Aside - Templates
+--------
+
+When modifying a 3rd party app, it is best to extend it rather than modify any existing code.
+Let's look at this with the admin. At the command prompt run:
+
+```python
+$ python
+>>> import zinnia
+>>> zinnia.__path__
+```
+
+This will print the location of the files used to run django.
+Normally you'd leave it here because you aren't going to modify the source code.
+We're going to copy it for easy access. Be sure not to modify any files in zinnia, but rather copy them.
+Exit python (ctrl + d) and type the following using the output from above:
+
+```bash
+$ cp -r <path-from-above> ~/projects/intro
+```
+
+In the code you copied from zinnia there is a folder called `zinnia/templates/zinnia`. Django will first look in your main templates directory, `intro/templates` before looking in `zinnia/templates`. It actually looks in all of your `INSTALLED_APPS` in the order that they appear in `intro/settings.py`. All zinnia templates say `{% extends "zinnia/base.html" %}` at the top and `zinnia/templates/zinnia/base.html` says to extend `zinnia/skeleton.html` at the top. 
+
+We're going to copy all of zinnia's templates to the `intro/templates/` folder. This is actually bad practice since upgrading zinnia will be harder in the future if we forget which templates we changed. (you can copy these any way you want, I just used bash since it's semi-universal)
+
+```bash
+$ cp -r zinnia/templates/zinnia/ intro/templates/
+```
+
+Refresh your file browser (right click on the top) and you'll see that you now have copies of all of the zinnia templates locally stored. If you open `intro/templates/zinnia/skeleton.html` you can edit all of the copy (static text) to match your name. Next you can open `intro/templates/zinnia/base.html` and comment out any sidebar widgets you aren't going to use (for example if you only have one user you may want to remove the authors widget. I recommend using `{% comment %}` and `{% endcomment %}` so that you can put them back in if you want them later (let's say you stop being such a loner and get a friend who wants to write on your blog). You can always go back to the zinnia github page or the zinnia source documentation on github to see the originals.
+
 Classes
 --------
+
+In order to modify the admin interface for zinnia, we need to modify the `zinnia/admin.py` classes that use `admin.ModelAdmin`. Don't change this file! After learning about class inheritance we'll be able to modify the pages at `/admin/zinnia/` without changing the source and without re-writing everything.
+
+### Everything's an object!
 
 Previously we've ignored the nature of a python class.
 To manipulate the Django Admin interface, we'll need to know a little bit more.
@@ -666,19 +755,11 @@ $ python manage.py shell
 ['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__init__', '__le__', '__len__', '__lt__', '__mod__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__rmod__', '__rmul__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '_formatter_field_name_split', '_formatter_parser', 'capitalize', 'center', 'count', 'decode', 'encode', 'endswith', 'expandtabs', 'find', 'format', 'index', 'isalnum', 'isalpha', 'isdigit', 'islower', 'isspace', 'istitle', 'isupper', 'join', 'ljust', 'lower', 'lstrip', 'partition', 'replace', 'rfind', 'rindex', 'rjust', 'rpartition', 'rsplit', 'rstrip', 'split', 'splitlines', 'startswith', 'strip', 'swapcase', 'title', 'translate', 'upper', 'zfill']
 ```
 
-That's super unreadable. To get a more readable list let's create a function, `print_dir`
+These are all the things you can do with a string. Event adding two strings together `'monkey'+lovin'` is actually just using the __add__ method on the string `'monkey'.__add__('lovin')`.
 
-```python
->>> def print_dir(obj):
-...    for string in obj:
-...        print string
-...
->>> print_dir(x)
-```
+A class is a generic object that can be used to make objects. If we want to make a new type of object, we can "inherit" all of the behaviors of another type by creating a new class. By convention, classes are written in CamelCase.
 
-I supressed the output for brevity. 
-A class is a generic object that can be used to make objects. 
-By convention, classes are written in CamelCase.
+I'm going to show you how to make a class and how to improve it. Don't worry too much about typing this one out. Instead just try to understand the more important concept of inheritance.
 
 ```python
 >>> class BarrelOfMonkeys():
@@ -695,13 +776,9 @@ By convention, classes are written in CamelCase.
 5
 ```
 
-Here `count` is a property, accessed like `some_object.some_property`,
-`add` is a method. Methods need at least one argument, `self` which is used to refer to the object.
-Methods are functions and must be called like 'some_object.some_method(arg1,arg2...)`
-Self is automatically passed in and should not be written in when the object is called.
+Here `count` is a property, accessed like `some_object.some_property`, and `add` is a method. Methods need at least one argument, `self` which is used to refer to the object. `self` is simply the barrel created in `barrel = BarrelOfMonkeys()`. Here `barrel` is an instance of `BarrelOfMonkeys`, which is why python will yell that "the first argument of a method must be an instance of BarrelOfMonkeys" if you forget to put `self` in the above functions. Methods are functions and must be called like 'some_object.some_method(arg1,arg2...)`. Self is automatically passed in and should not be written in when the object is called.
 
-Classes can inherit from other classes. 
-The new class has all the methods and attributes of the old class.
+Classes can inherit from other classes. The new class has all the methods and attributes of the old class.
 
 ```python
 >>> class BetterBarrel(BarrelOfMonkeys):
@@ -725,9 +802,10 @@ There is only room for one more monkey(s).
 Anytime a method/property has the same name as the old class it is overwritten.
 Throughout the class we have been doing this with two classes `django.db.models.Model`
 and `django.contrib.admin.ModelAdmin`.
+
 Now we're going to overwrite a lot of methods on the `ModelAdmin` class.
 
-Modifying the Admin - List View
+Modifying the Admin
 --------
 
 `ModelAdmin` and all subclasses of it are used to display model in the admin interface (derp).
@@ -735,119 +813,115 @@ Visit
 https://docs.djangoproject.com/en/1.4/ref/contrib/admin/#modeladmin-options 
 for a comprehensive list of ModelAdmin options.
 
-The admin consists of the Index (`/admin/`),
+The admin consists of:
+
+Index (`/admin/`),
+
 app index (`/admin/<app-name>/`),
+
 list view (`/admin/<app-name>/<model-name>/`),
+
 and change-list view (`/admin/<app-name>/<model-name>/<id>/`).
+
 All of these urls were set up when you put `(r'^admin/',include(admin.urls)),` in `urls.py`.
 
-By default, the list view only shows `__unicode__` for every object.
-This can be modified by changing the list_display option. 
-In `photo/admin.py` create a `CommentAdmin` class and add it to the comment register function
+Zinnia comes witha highly customized admin. It even has a single image displayed with each blog article. You could re-upload all the images you put in your photo app. Instead we're going to unregister the zinnia admin, modify it to use the Photo model, and re-register it.
+
+First we need to connect the photo model with the Zinnia entry:
 
 ```python
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('screenname','photo','text','approved')
+#add this to photo/models.py
 
-admin.site.register(Comment,CommentAdmin)
+from zinnia.models import Entry
+
+...
+
+class EntryPhoto(models.Model):
+    photo = models.ForeignKey(Photo)
+    entry = models.ForeignKey(Entry)
+    order = models.IntegerField(default=0)
+    class Meta:
+        ordering = ("order",)
 ```
 
-Now if you look at the list view in the admin (`/admin/photo/comment`) you'll see more columns.
-Additionally we can make models editable from the admin interface. 
-`list_filter` can be set so that you can view only approved or unapproved comments.
-
-```python
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('screenname','photo','text','approved')
-    list_editable = ('approved',)
-    list_filter = ('approved',)
-```
-
-Notice the trailing comma in list editable. A tuple with only one entry needs this.
-
-Any method or property on the Comment model can be put into the list.
-Additionally, methods on the 
-
-```python
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__','screenname','edit_photo','text','approved')
-    list_editable = ('approved',)
-    list_filter = ('approved',)
-    def edit_photo(self,obj):
-        return "<a href='/admin/photo/photo/"+str(obj.photo.id)+"'>"+obj.photo.name+"</a>"
-    edit_photo.allow_tags = True
-```
-
-Now the photo can be edited by clicking the link!
-
-Modifying the Admin - Change List View
---------
-
-The above problem can also be solved by modifying the change view using `admin.TabularInline`.
-This creates a mini change view at the bottom of a Model's page for modifying another model.
-The following all of a given Photo's comments to be seen/modified from that Photo's change view.
-
-```python
-class CommentInline(admin.TabularInline):
-    model = Comment
-
-class PhotoAdmin(admin.ModelAdmin):
-    inlines = [CommentInline]
-
-admin.site.register(Photo,PhotoAdmin)
-```
-
-Typically the admin is accessed by various users.
-You are a superuser, which means you can do what you like.
-However, you may want to prevent other users from modifying anything but the `approved` field.
-This is done with `readonly_fields` options.
-
-```python
-class CommentInline(admin.TabularInline):
-    model = Comment
-    readonly_fields = ('screenname','text')
-```
-
-Brief Aside - Templates
---------
-
-When modifying a 3rd party app, it is best to extend it rather than modify any existing code.
-Let's look at this with the admin. At the command prompt run:
-
-```python
-$ python
->>> import django
->>> django.__path__
-```
-
-This will print the location of the files used to run django.
-Normally you'd leave it here, but we're going to copy it for easy access.
-Exit python (ctrl + d) and type the following using the output from above:
+Create a schemamigration and apply it:
 
 ```bash
-$ cp -r <path-from-above> ~/projects/
+$ python manage.py schemamigration --auto photo
+$ python manage.py migrate photo
 ```
 
-Create a folder called `admin` in the `intro/templates` folder in your app.
-Create an empty file called `login.html` in the new `intro/templates/login/` folder
-Refresh the file browser and locate `django/contrib/admin/templates/admin`.
-These are the admin templates.
-Copy and paste the contents of `login.html` into the new file.
-Modify anything and save!
+Now we have a table linking entries to photos. We could register this model to the admin the same way we did Photo, but this would be awkward to edit. Instead we're going to create an inline. In `photo/admin.py`:
 
-<!--
-*** install sorl in requirements
-*** load thumbnail library
-*** show sorl crop tag
-*** media directory
-* Night two
-** Static files
-** generic models + tags
-** model inheritance
-** south
-** abstract models
-** extending models with inlines
-** articles app
-** overwritting the articles admin using 
-** context processors
--->
+```python
+from zinnia.models import Entry
+from zinnia.admin import EntryAdmin
+from photo.models import Photo, Comment, EntryPhoto
+
+admin.site.unregister(Entry)
+
+class EntryPhotoInline(admin.TabularInline):
+    model = EntryPhoto
+
+class EntryAdmin(EntryAdmin):
+    inlines = EntryAdmin.inlines + [EntryPhotoInline]
+
+admin.site.register(Entry,EntryAdmin)
+```
+
+Now go to the '/admin/zinnia/entry/add/' and you'll notice that there is now a series of inlines for entry photos! This by itself does nothing. We can connect photos to entries in the database, but they are not being dispalyed in the templates.
+
+At this point you'd search the code for any place that 'image' occurs and replace it with the photo image. Luckily I've done that for you. Go to 'intro/templates/zinnia/_entry_detail' and modify any that has 'object.image' with your EntryPhotos. Originally you see:
+
+```html
+{% if object.image %}
+<div class="entry-image">
+  <p>
+    {% if continue_reading %}
+    <a href="{{ object.get_absolute_url }}" title="{{ object.title }}" rel="bookmark">
+      {% endif %}
+      <img src="{{ object.image.url }}" alt="{{ object.title }}" class="left" />
+      {% if continue_reading %}
+    </a>
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+```
+
+Change it to:
+
+```html
+{% if object.entryphoto_set.count %}
+<div class="entry-image">
+  <p>
+    {% if continue_reading %}
+    <a href="{{ object.get_absolute_url }}" title="{{ object.title }}" rel="bookmark">
+      {% endif %}
+      <img src="{{ MEDIA_URL }}{{ object.entryphoto_set.all.0.photo.src }}" alt="{{ object.title }}" class="left" />
+      {% if continue_reading %}
+    </a>
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+```
+
+Now if you're like , you've uploaded a file WAY too big to be shown on this page. That's when we need sorl thumbnail. 
+
+```html
+{% load thumbnail %}
+{% thumbnail object.entryphoto_set.all.0.photo.src "200x200" crop="center" as im %}
+<div class="entry-image">
+  <p>
+    {% if continue_reading %}
+    <a href="{{ object.get_absolute_url }}" title="{{ object.title }}" rel="bookmark">
+      {% endif %}
+      <img src="{{ im.url }}" alt="{{ object.title }}" class="left" widht="{{ im.width }}" height="{{ im.height }}"/>
+      {% if continue_reading %}
+    </a>
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+```
