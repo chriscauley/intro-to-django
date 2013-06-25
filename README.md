@@ -31,10 +31,10 @@ show how to save a file and run it from the command line.
 Installing django
 --------
 
-To use Django we'll need pip (a python package manager) and several packages used in image manipulation. These packages are only needed to use sorl-thumbnail. On non-ubuntu systems, feel free to install PIL or skip any sections involving sorl or thumbnails.
+To use Django we'll need pip (a python package manager), git (a version control program), and several packages used in image manipulation. These packages are only needed to use sorl-thumbnail. On non-ubuntu systems, feel free to install PIL or skip any sections involving sorl or thumbnails.
 
 ```bash
-sudo apt-get install python-pip python-dev python libjpeg-dev zlib-dev libpng-dev python-imaging
+sudo apt-get install python-pip git python-dev python libjpeg-dev zlib-dev libpng-dev python-imaging git-core
 ```
 
 Next install django using pip. 
@@ -42,6 +42,15 @@ Next install django using pip.
 ```bash 
 sudo pip install django
 ```
+
+And finally checkout the source material for this class. If you do this you can pull future changes when I update the site!
+
+```bash
+git clone git@github.com:chriscauley/intro-to-django.git
+cd intro-to-django
+```
+
+Now your terminal will be in the directory where the course material lives. All future command should be run in this terminal.
 
 Hello django
 --------
@@ -227,6 +236,43 @@ Bonus 3rd party app: sorl.thumbnail
   {% endfor %}
 </ul>
 ```
+
+Reload the page and the photos should appear as 200x200 cropped thumbnails instead of large photos.
+
+Zinna
+--------
+
+To get a fully functioning web page, we're going to install a 3rd party blog app called Zinnia. The rest of the class will focus on modifying this application to make a custom blog. First install Zinnia using pip.
+
+```bash
+sudo pip install django-blog-zinnia
+```
+
+Now add the following 3 apps to the INSTALLED_APPS variable in intro/settings.py
+
+```
+INSTALLED_APPS = (
+  ...
+  'tagging',
+  'mptt',
+  'zinnia',
+)
+```
+
+And finally add the zinna urls to the intro/urls.py file. This installs connects Zinnia's urls (and thus views) to your url file. 
+
+```python
+url(r'^weblog/', include('zinnia.urls')),
+url(r'^comments/', include('django.contrib.comments.urls')),
+```
+
+Finally migrate the database. This adds the Zinnia models to the database.
+
+```bash
+python manage.py migrate
+```
+
+Now if you go to the "/weblog/" url in your browser, you'll see installed on your site.
 
 Night 2
 ========
