@@ -28,6 +28,21 @@ $ python
 show how to save a file and run it from the command line.
 -->
 
+Installing django
+--------
+
+To use Django we'll need pip (a python package manager) and several packages used in image manipulation. These packages are only needed to use sorl-thumbnail. On non-ubuntu systems, feel free to install PIL or skip any sections involving sorl or thumbnails.
+
+```bash
+sudo apt-get install python-pip python-dev python libjpeg-dev zlib-dev libpng-dev python-imaging
+```
+
+Next install django using pip. 
+
+```bash 
+sudo pip install django
+```
+
 Hello django
 --------
 
