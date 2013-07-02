@@ -367,8 +367,7 @@ Hello {{ name }}!
 {% endblock %}
 ```
 
-Now when you go to the home of the server (with nothing typed in afte the domain and port number). Django serves up `home.html`. This "extends" `zinnia/skeleton.html`, which means that it uses replaces all the blocks in `szinnia/skeleton.html` with the blocks in `home.html`. In this case there are two blocks, the title and the content.
-
+Now when you go to the home of the server (with nothing typed in afte the domain and port number). Django serves up `home.html`. This "extends" `zinnia/skeleton.html`, which means that it uses replaces all the blocks in `zinnia/skeleton.html` with the blocks in `home.html`. In this case there are two blocks, the title and the content.
 
 The Django Templating Language
 --------
@@ -378,6 +377,8 @@ This is a dictionary, usually called "values".
 Any variable can be printed by placing the `{{ variable_name }}` in braces in a template. 
 Any functions are executed, anything else is converted to strings. 
 Any attribute can be called with a dot like `{{ variable_name.attribute }}`. 
+
+<!-- moving model to second day... 
 For models, this is set with the `__unicode__` magic method. 
 
 ```python
@@ -392,9 +393,10 @@ class Photo(models.Model):
 ```
 
 Now in a template `{{ photo }}` has the same effect as writting `A photo named {{ photo.name }}`.
+-->
 
 Other than variables the only programming that can be done in templates are done through filters and tags. 
-Template filters are applied with the pip like this:
+Template filters are applied with the pipe like this:
 
 <table>
   <tr>
@@ -434,7 +436,7 @@ Template filters are applied with the pip like this:
     <td></td>
   <tr>
     <td>x = "arst"</td>
-    <td>{{ x|upper|add:" is "|add:x }}</td>
+    <td>{{&nbsp;x|upper|add:"&nbsp;is&nbsp;"|add:x&nbsp;}}</td>
     <td>ARST is arst</td>
     <td>Template filter argument can be a variable.</td>
   </tr>
