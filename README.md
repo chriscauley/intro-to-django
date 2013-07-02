@@ -73,10 +73,6 @@ urlpatterns = patterns('',
 )
 ````
 
-<!-- BRIEF ASIDE
-"What does this do?"
--->
-
 Now it needs a function `home` in a file `views.py`. Create `intro/views.py` and enter in the following:
 
 ```python
@@ -103,7 +99,7 @@ There is already a template in `intro/templates/base.html`. Add `{{ name }}` to 
 Simple Model (photos)
 --------
 
-Start a new django app with `$ python manage.py startapp photo`. Add the following lines to `photo/models.py`. Don't worry about a class is, for now just fake your way through it.
+Start a new django app with `$ python manage.py startapp photo`. Add the following lines to `photo/models.py`. Don't worry about what a class is, for now just fake your way through it.
 
 ```python
 from django.db import models
@@ -183,7 +179,7 @@ And inside the body of base.html, print the photos with:
 <ul>
   {% for photo in photos %}
   <li>
-    <img src="{{ MEDIA_URL }}{{ photo.url }}" alt="{{ photo.name }}" />
+    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
     <p>
       {{ photo.name }}, by {{ photo.credit }}
     </p>
@@ -276,6 +272,103 @@ Now if you go to the "/weblog/" url in your browser, you'll see installed on you
 
 Night 2
 ========
+
+Modifying Zinnia
+--------
+
+When you go to any of the `/weblog/` urls, the urls.py file passes the request off to Zinnia's url file. This then redirects the url to a variety of view functions. These view functions all process templates, or HTML files with places for variables and simple programming logic. In this section we'll modify the Zinnia templates. If you look in `intro/settings.py`, you'll see TEMPLATE_LOADERS and TEMPLATE_DIRS variables.
+
+```
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
+# ...
+
+TEMPLATE_DIRS = (
+  'intro/templates',
+)
+```
+
+The first TEMPLATE_LOADER searches any folders listed in TEMPLATE_DIRS (here there is only one, `intro/templates` in the provided course material) when a view function returns a TemplateResponse, it searches this folder for a template matching that (so `base.html` would be matched by `intro/templates/base.html`). If it doesn't find a matching template it will then search every INSTALLED_APP for the template until it finds a match. It will raise an error if it doesn't find a match.
+
+So when url under weblog is accessed it will use a template like `zinnia/some_template.html`. Django first looks for `intro/templates/zinnia/some_template.html` and when it is not found it searches all of the template folders of the installed apps in a similar manner. When it gets to zinnia, it will find the template located in the Zinnia source code (in this case `zinnia/templates/zinnia/some_template.html`). It then uses that template to return an html document to the browser.
+
+### Making a copy of Zinnia templates in your source code
+
+!! Feel free to skip this section. I've done this already and left this section here for future reference !!
+
+If we want to make changes we have to either make changes to the Zinnia source code (BAD! don't do this! don't ever do this!) or put a file in `intro/templates/zinnia/` that will be found first. You can find out where zinnia lives in the shell by opening a python prompt and then asking for Zinnia's __path__.
+
+```python
+$ python
+>>> import zinnia
+>>> print zinnia.__path__
+/usr/local/lib/python2.7/dist-packages/zinnia
+```
+
+This means that zinnia lives in `/usr/local/lib/python2.7/dist-packages/zinnia`, which means that it's templates must be in `/usr/local/lib/python2.7/dist-packages/zinnia/templates/`. If you don't understand this next line, you can copy and paste it, but be sure to exit python (ctrl+d or `exit()`) and make sure you're in the `intro-to-django` directory before running it.
+
+```python
+cp -r /usr/local/lib/python2.7/dist-packages/zinnia/templates/zinnia/ intro/templates/
+```
+
+### A few simple changes
+
+Now you should have a copy of all Zinnia templates in `intro/templates/zinnia`. We'll start by looking at `intro/templates/zinnia/skeleton.html`. This contains provides a common page layout and supporting files (css, javascript, etc.) for the entire site. Near the top you'll see a `<title>` tag:
+
+```html
+<title>Zinnia's Weblog - {% block title %}{% endblock %}</title>
+```
+
+A ways further down you'll find an `<h1>` tag and the `<blockquote>` that are at the page header.
+
+```html
+        <h1>
+          <a href="{% url 'zinnia_entry_archive_index' %}" title="Zinnia's Weblog" rel="home">
+            Zinnia's Weblog
+          </a>
+        </h1>
+        <blockquote>
+          <p>{% trans "Just another Zinnia weblog." %}</p>
+        </blockquote>
+```
+
+Change these as you see fit and then visit `/weblog/` in a browser. These changes will be global accross all views in Zinnia.
+
+#### ---- Exercise ----
+
+This would be a good time to start right clicking on various parts of the page, using "inspect element" and then trying to find the corresponding HTML in the zinnia template files. Not all the html can be changed through the templates, but most of it can.
+
+### Creating a new page
+
+Since the templates can be a bit overwhelming at first, we're going to start by making our own page. First go back to `intro/views.py` which we made yesterday and change the last line to return a TemplateResponse using `home.html`.
+
+```python
+from django.template.response import TemplateResponse
+
+def home(request):
+    values = {
+        'name': 'Sweetie',
+    }
+    return TemplateResponse(request,"home.html",values)
+```
+
+Now we need to make `home.html` which will sit in `intro/templates`.
+
+```html
+{% extends "zinnia/skeleton.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+Hello {{ name }}!
+{% endblock %}
+```
+
+Now when you go to the home of the server (with nothing typed in afte the domain and port number). Django serves up `home.html`. This "extends" `zinnia/skeleton.html`, which means that it uses replaces all the blocks in `szinnia/skeleton.html` with the blocks in `home.html`. In this case there are two blocks, the title and the content.
+
 
 The Django Templating Language
 --------
