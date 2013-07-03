@@ -96,37 +96,6 @@ def home(request):
 
 There is already a template in `intro/templates/base.html`. Add `{{ name }}` to it in the body
 
-Simple Model (photos)
---------
-
-Start a new django app with `$ python manage.py startapp photo`. Add the following lines to `photo/models.py`. Don't worry about what a class is, for now just fake your way through it.
-
-```python
-from django.db import models
-
-category_choices = (
-  ('work','Work'),
-  ('play','Play'),
-)
-
-class Photo(models.Model):
-    src = models.ImageField(upload_to='photos/')
-    name = models.CharField(max_length='100')
-    uploaded = models.DateTimeField(auto_now_add=True)
-    credit = models.CharField(max_length=50,null=True,blank=True)
-    category = models.CharField(max_length=50,blank=True,choices=category_choices)
-```
-
-Now add `photo` to the `INSTALLED_APPS` tuple in `intro/settings.py`. The photo app is now added to your project. However, it is not set up in the database. For that you need to run `$ python manage.py syncdb`. Full documentation on the built in types of fields can be found at:
-
-https://docs.djangoproject.com/en/dev/ref/models/fields/#field-types
-
-<!-- BRIEF ASIDE
-Now would take a break and show off the model from the shell.
-Also it might be useful to show how kwargs work.
-"Take notes, but don't try to follow along. We'll see a lot more of this as we go on.
--->
-
 The Django Admin - Great power, little responsibility
 --------
 
@@ -140,60 +109,7 @@ admin.autodiscover()
     (r'^/admin/',include('admin.urls'),
 ```
 
-Uncomment `'django.contrib.admin'` in `INSTALLED_APPS` halfway down the file `intro/settings.py`. The admin is now visible on `/admin/`. The photo app does not appear because it is not registered. Register it by creating `photo/admin.py` with the following content.
-
-```python
-from django.contrib import admin
-from models import Photo
-
-admin.site.register(Photo)
-```
-
-Now photos are accesible through the django admin. Try downloading a few images and adding them to the admin.
-
-<!-- BRIEF ASIDE
-Add choices to the category field.
-Turn auto_now_add on and off to show off what it does
--->
-
-Connecting views.py and models.py
---------
-
-Open views.py and add the photos to the `values` dictionary
-
-```python
-from django.template.response import TemplateResponse
-from photo.models import Photo
-
-def home(request):
-    values = {
-        'name': 'Sweetie!',
-        'photos': Photo.objects.all(),
-    }
-    return TemplateResponse(request,'base.html',values)
-```
-
-And inside the body of base.html, print the photos with:
-
-```html
-<ul>
-  {% for photo in photos %}
-  <li>
-    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
-    <p>
-      {{ photo.name }}, by {{ photo.credit }}
-    </p>
-    <p>
-      uploaded on {{ photo.uploaded }}
-    </p>
-  </li>
-  {% empty %}
-  <li>
-    There are no photos :(
-  </li>
-  {% endfor %}
-</ul>
-```
+Uncomment `'django.contrib.admin'` in `INSTALLED_APPS` halfway down the file `intro/settings.py`. The admin is now visible on `/admin/`. 
 
 Bonus 3rd party app: sorl.thumbnail
 --------
@@ -438,7 +354,7 @@ Template filters are applied with the pipe like this:
     <td>x = "arst"</td>
     <td>{{&nbsp;x|upper|add:"&nbsp;is&nbsp;"|add:x&nbsp;}}</td>
     <td>ARST is arst</td>
-    <td>Template filter argument can be a variable.</td>
+    <td>Template filter argument can be a variable. Also filters can be chained together.</td>
   </tr>
   <tr>
     <td>x = "arst"</td>
@@ -540,6 +456,12 @@ Anything in here will not be printed.<br />
     <td>
     - Useful for documentation and depracation.
     </td>
+    <tr>
+    <td></td>
+    <td>{# I am a comment #}</td>
+    <td>
+    - single line comments use {#  #}
+    </td>
   </tr>
 </table>
 
@@ -548,70 +470,235 @@ Full documentation for built in template tags and template filters can be found 
 
 https://docs.djangoproject.com/en/dev/ref/templates/builtins/
 
-Back to the models
+A custom photo model
 --------
 
-Last time we made a photo model. 
-This time we're going to improve on the (admittedly weak) category system.
-Then we'll add a comment system. 
-First we need to put everything under a migration system to change the database without writting SQL.
-
-* South is already installed! Check `requirements.txt` if you don't believe me.
-
-* Add 'south' to the list of `INSTALLED_APPS` in `settings.py`.
-
-* Add south to the database with `$ python manage.py syncdb`.
-  (`$` implies you run in terminal)
-
-* Create an initial migration with `$ python manage.py schemamigration photo --init`.
-
-* Fake the migration with `$ python manage.py migrate photo --fake`
-
-The photo app is now controlled by south migrations.
-Now we're ready to add a new model and modify the old `Photo` model. 
-This uses a new field `models.ForeignKey`.
+We're going to change Zinnia into a photo blog rather than a blog. To do this we'll first set up a few tables, to store photo information in the database. Start a new django app with `$ python manage.py startapp photo`. This creates a few files necessary to build an app in a folder called "photo". Add the following lines to `photo/models.py`. Don't worry about what a class is, for now just fake your way through it.
 
 ```python
-class Category(models.Model):
-    name = models.CharField(max_length='100')
-    private = models.BooleanField(default=False)
-    def __unicode__(self):
-        return self.name
+from django.db import models
 
 class Photo(models.Model):
     src = models.ImageField(upload_to='photos/')
     name = models.CharField(max_length='100')
     uploaded = models.DateTimeField(auto_now_add=True)
     credit = models.CharField(max_length=50,null=True,blank=True)
-    #category = models.CharField(max_length=50,blank=True,choices=category_choices)
-    category = models.ForeignKey(Category)
+```
+
+Full documentation on the built in types of fields can be found at:
+
+https://docs.djangoproject.com/en/dev/ref/models/fields/#field-types
+
+Lastly we need do create the photo table. Since we're going to be modifying the photo table, you'll want to add it to database migrations using south. This allows us to easily change the database.
+
+* Since south is included in "requirements.txt" it should already be installed when you ran `pip install -r requirements.txt`.
+
+* Add 'south' to the list of `INSTALLED_APPS` in `settings.py` (it should already be there if you're using this repository).
+
+* Add south to the database with `python manage.py syncdb`. 
+
+* Add `'photo'` to the `INSTALLED_APPS` tuple in `intro/settings.py`.
+
+* Create an initial migration with `python manage.py schemamigration photo --init`.
+
+* Migrate the photo app with `python manage.py migrate photo`. If you get an error saying the table already exists, fake the migration with `python manage.py migrate photo --fake`
+
+<!-- BRIEF ASIDE
+Now would take a break and show off the model from the shell.
+Also it might be useful to show how kwargs work.
+"Take notes, but don't try to follow along. We'll see a lot more of this as we go on.
+-->
+
+Connecting Photo to the admin
+--------
+
+If you visit the admin page at `/admin/`, the photo app does not appear because it is not registered. Register it by creating `photo/admin.py` with the following content.
+
+```python
+from django.contrib import admin
+from models import Photo
+
+admin.site.register(Photo)
+```
+
+When `admin.autodiscover()` runs in `intro/urls.py`, it checks every app for an `admin.py` file. This adds Photo a generic admin view for the Photo model. Now restart the devserver and return to `/admin/`. Now photos are accesible through the django admin. Try downloading a few images and adding them to the admin.
+
+Connecting views.py and models.py
+--------
+
+Open views.py and add the photos to the `values` dictionary. To do this you'll need to first import the Photo model from `photo/models.py` with the second line.
+
+```python
+from django.template.response import TemplateResponse
+from photo.models import Photo
+
+def home(request):
+    values = {
+        'name': 'Sweetie!',
+        'photos': Photo.objects.all(),
+    }
+    return TemplateResponse(request,'home.html',values)
+```
+
+And inside `intro/templates/home.html` you can print the photos with a for loop
+
+```html
+{% block content %}
+<ul>
+  {% for photo in photos %}
+  <li>
+    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
+    <p>
+      {{ photo.name }}, by {{ photo.credit }}
+    </p>
+    <p>
+      uploaded on {{ photo.uploaded }}
+    </p>
+  </li>
+  {% empty %}
+  <li>
+    There are no photos :(
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+```
+
+This should print every photo in the database.
+
+Photo sets
+--------
+
+Before we associate photos with blog articles, we need to understand ForeinKey relationships. So we're going to create a photoset that will store multiple photos. This uses a new field `models.ForeignKey`.
+
+```python
+class Photo(models.Model):
+    src = models.ImageField(upload_to='photos/')
+    name = models.CharField(max_length='100')
+    uploaded = models.DateTimeField(auto_now_add=True)
+    credit = models.CharField(max_length=50,null=True,blank=True)
+    photoset = models.ForeignKey(PhotoSet,null=True,blank=True)
     def __unicode__(self):
         return "A photo named " + self.name
+
+class PhotoSet(models.Model):
+    name = models.CharField(max_length='100')
+    private = models.BooleanField(default=False)
+    def __unicode__(self):
+        return self.name
 ```
+
+The ForeignKey connects a Photo to a PhotoSet. We marked it as `null=True,blank=True` because that means that you can leave this empty (not every photo must belong to a photoset). This time we can't just use `manage.py syncdb` to create the tables since we've modified the Photo which already exists. Instead we must create a migration using in two steps
 
 * create migration with `$ python manage.py schemamigration --auto photo`
 
 * run migration with `$ python manage.py migrate photo`
 
-* add the following code to the admin file to make category appear (try without looking first).
+Next add the following code to the admin file to make PhotoSet appear.
 
 ```python
-from photo.models import Category, Photo
+from photo.models import PhotoSet, Photo
 
-admin.site.register(Category)
+admin.site.register(Photo)
+admin.site.register(PhotoSet)
 ```
 
-Now we can do the same with a comment model. At the end of `models.py` add the following. 
-Then add run `schemamigration` and `migrate` using `manage.py` and we're ready to learn forms.
+Next we'll create a "photoset_detail" view and display the photosets on our "home" view in `intro/views.py`
 
 ```python
-class Comment(models.Model):
-    photo = models.ForeignKey(Photo)
-    screenname = models.CharField(max_length=20,null=True,blank=True)
-    text = models.TextField()
-    approved = models.BooleanField(default=False)
-    added_on = models.DateTimeField(auto_now_add=True)
+from django.template.response import TemplateResponse
+from photo.models import Photo, PhotoSet
+
+def home(request):
+    if request.user.is_authenticated():
+        photosets = Photoset.objects.all()
+    else:
+        photosets = Photoset.objects.filter(private=False)
+    values = {
+        'name': 'Sweetie!',
+        'photosets': photosets,
+    }
+    return TemplateResponse(request,'home.html',values)
+
+def photoset_detail(request,photoset_id):
+    photoset = PhotoSet.objects.get(id=photoset_id)
+    values = {
+        'photoset': photoset,
+	'photos': Photo.objects.filter(photoset=photoset),
+    }
+    return TemplateResponse(request,'photoset_detail.html',values)
 ```
+
+The conditional `if request.user.is_authenticated()` makes it so that only logged in users will see the "private" photosets. Everyone else will see only non-private photosets, hence `filter(private=False)`.
+
+Now add url for the new view. 
+
+```python
+urlpatterns = patterns('',
+    (r'^$','intro.views.home'),
+    (r'^photoset/(\d+)/$','intro.views.photoset_detail'),
+    # Snip!!
+)
+```
+
+Here `\d+` means "match one or more number". Adding parentheses around it means that we're going to collect that number and pass it into the view function (photoset_detail). So for example the url "/photoset/1/" will execute `photoset_detail(request,1)`.
+
+Next we modify `intro/home.html` to show a list of the photosets instead of the photos.
+
+```html
+{% extends "zinnia/skeleton.html" %}
+
+{% block title %}{{ photoset.name }}{% endlock %}
+
+
+{% block content %}
+<h2>{{ photoset.name }}</h2>
+<ul>
+  {% for photoset in photosets %}
+  <li>
+  <a href="/photoset/{{ photoset.id }}/">{{ photoset.name }}</a>
+  </li>
+  {% empty %}
+  <li>
+    There are no photosets :(
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+```
+
+And now we need a `intro/photoset_detail.html` file.
+
+```html
+{% extends "zinnia/skeleton.html" %}
+
+{% block content %}
+<ul>
+  {% for photo in photos %}
+  <li>
+    <img src="{{ MEDIA_URL }}{{ photo.src }}" alt="{{ photo.name }}" />
+    <p>
+      {{ photo.name }}, by {{ photo.credit }}
+    </p>
+    <p>
+      uploaded on {{ photo.uploaded }}
+    </p>
+  </li>
+  {% empty %}
+  <li>
+    There are no photos :(
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
+```
+
+That's it for now. Next time we'll look into cropping photos and connecting photosets to blog articles.
+
+STOP HERE!
+========
+
+Everything below this point is left over material from last time. Don't go any further.
 
 Clean Up the Templates
 --------
