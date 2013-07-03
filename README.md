@@ -322,42 +322,42 @@ Template filters are applied with the pipe like this:
     <th>notes</th>
   </tr>
   <tr>
-    <td>x = "abcdef"</td>
+    <td>x&nbsp;=&nbsp;"abcdef"</td>
     <td>{{ x }}</td>
     <td>abcdef</td>
     <td></td>
   </tr>
   <tr>
-    <td>x = "abcdef"</td>
+    <td>x&nbsp;=&nbsp;"abcdef"</td>
     <td>{{ x|length }}</td>
     <td>6</td>
     <td></td>
   </tr>
   <tr>
-    <td>x = [1,2,3,4,5] </td>
+    <td>x&nbsp;=&nbsp;[1,2,3,4,5] </td>
     <td>{{ x|length }}</td>
     <td>5</td>
     <td></td>
   </tr>
   <tr>
-    <td>x = "abcdef"</td>
+    <td>x&nbsp;=&nbsp;"abcdef"</td>
     <td>{{ x|upper }}</td>
     <td>ABCDEF</td>
     <td></td>
   </tr>
   <tr>
-    <td>x = 5</td>
+    <td>x&nbsp;=&nbsp;5</td>
     <td>{{ x|add:10 }}</td>
     <td>15</td>
     <td></td>
   <tr>
-    <td>x = "arst"</td>
+    <td>x&nbsp;=&nbsp;"arst"</td>
     <td>{{&nbsp;x|upper|add:"&nbsp;is&nbsp;"|add:x&nbsp;}}</td>
     <td>ARST is arst</td>
     <td>Template filter argument can be a variable. Also filters can be chained together.</td>
   </tr>
   <tr>
-    <td>x = "arst"</td>
+    <td>x&nbsp;=&nbsp;"arst"</td>
     <td>{{ x|add:5 }}</td>
     <td></td>
     <td>Can't add int and string, fails silently</td>
@@ -377,13 +377,13 @@ Some tags require an end tag.
     <th>notes</th>
   </tr>
   <tr>
-    <td>x = range(4)</td>
+    <td>x&nbsp;=&nbsp;range(4)</td>
     <td>{{ x }}</td>
     <td>[0,1,2,3]</td>
     <td>A list of length 4</td>
   </tr>
   <tr>
-    <td>x = range(4)</td>
+    <td>x&nbsp;=&nbsp;range(4)</td>
     <td>
 {% for x in x %}<br />
 {{ x }}<br />
@@ -398,7 +398,7 @@ Some tags require an end tag.
     <td></td>
   </tr>
   <tr>
-    <td>x = []</td>
+    <td>x&nbsp;=&nbsp;[]</td>
     <td>
 {% for x in x %}<br />
 {{ x }}<br />
@@ -412,7 +412,7 @@ There is nothing in x
     <td></td>
   </tr>
   <tr>
-    <td>x = [1,2,3]</td>
+    <td>x&nbsp;=&nbsp;[1,2,3]</td>
     <td>
 {% if x|length == 1 %}<br />
 There is one item in the list<br />
@@ -445,7 +445,7 @@ There are 3 items in this list.
     </td>
   </tr>
   <tr>
-    <td>x = 'my name is chris'</td>
+    <td>x&nbsp;=&nbsp;'my name is chris'</td>
     <td>
 {% comment %}<br />
 Anything in here will not be printed.<br />
