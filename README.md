@@ -235,7 +235,7 @@ def home(request):
 Now we need to make `home.html` which will sit in `intro/templates`.
 
 ```html
-{% extends "zinnia/skeleton.html" %}
+{% extends "zinnia/base.html" %}
 
 {% block title %}Home{% endblock %}
 
@@ -244,7 +244,7 @@ Hello {{ name }}!
 {% endblock %}
 ```
 
-Now when you go to the home of the server (with nothing typed in afte the domain and port number). Django serves up `home.html`. This "extends" `zinnia/skeleton.html`, which means that it uses replaces all the blocks in `zinnia/skeleton.html` with the blocks in `home.html`. In this case there are two blocks, the title and the content.
+Now when you go to the home of the server (with nothing typed in afte the domain and port number). Django serves up `home.html`. This "extends" `zinnia/base.html`, which means that it uses replaces all the blocks in `zinnia/base.html` with the blocks in `home.html`. In this case there are two blocks, the title and the content.
 
 The Django Templating Language
 --------
@@ -506,7 +506,7 @@ def home(request):
 And inside `intro/templates/home.html` you can print the photos with a for loop
 
 ```html
-{% extends "zinnia/skeleton.html" %}
+{% extends "zinnia/base.html" %}
 
 {% block content %}
 <ul>
@@ -611,7 +611,7 @@ Here `\d+` means "match one or more number". Adding parentheses around it means 
 Next we modify `intro/home.html` to show a list of the photosets instead of the photos.
 
 ```html
-{% extends "zinnia/skeleton.html" %}
+{% extends "zinnia/base.html" %}
 
 {% block title %}{{ photoset.name }}{% endlock %}
 
@@ -635,7 +635,7 @@ Next we modify `intro/home.html` to show a list of the photosets instead of the 
 And now we need a `intro/photoset_detail.html` file.
 
 ```html
-{% extends "zinnia/skeleton.html" %}
+{% extends "zinnia/base.html" %}
 
 {% block content %}
 <ul>
@@ -932,7 +932,7 @@ Exit python (ctrl + d) and type the following using the output from above:
 $ cp -r <path-from-above> ~/projects/intro
 ```
 
-In the code you copied from zinnia there is a folder called `zinnia/templates/zinnia`. Django will first look in your main templates directory, `intro/templates` before looking in `zinnia/templates`. It actually looks in all of your `INSTALLED_APPS` in the order that they appear in `intro/settings.py`. All zinnia templates say `{% extends "zinnia/base.html" %}` at the top and `zinnia/templates/zinnia/base.html` says to extend `zinnia/skeleton.html` at the top. 
+In the code you copied from zinnia there is a folder called `zinnia/templates/zinnia`. Django will first look in your main templates directory, `intro/templates` before looking in `zinnia/templates`. It actually looks in all of your `INSTALLED_APPS` in the order that they appear in `intro/settings.py`. All zinnia templates say `{% extends "zinnia/base.html" %}` at the top and `zinnia/templates/zinnia/base.html` says to extend `zinnia/base.html` at the top. 
 
 We're going to copy all of zinnia's templates to the `intro/templates/` folder. This is actually bad practice since upgrading zinnia will be harder in the future if we forget which templates we changed. (you can copy these any way you want, I just used bash since it's semi-universal)
 
@@ -940,7 +940,7 @@ We're going to copy all of zinnia's templates to the `intro/templates/` folder. 
 $ cp -r zinnia/templates/zinnia/ intro/templates/
 ```
 
-Refresh your file browser (right click on the top) and you'll see that you now have copies of all of the zinnia templates locally stored. If you open `intro/templates/zinnia/skeleton.html` you can edit all of the copy (static text) to match your name. Next you can open `intro/templates/zinnia/base.html` and comment out any sidebar widgets you aren't going to use (for example if you only have one user you may want to remove the authors widget. I recommend using `{% comment %}` and `{% endcomment %}` so that you can put them back in if you want them later (let's say you stop being such a loner and get a friend who wants to write on your blog). You can always go back to the zinnia github page or the zinnia source documentation on github to see the originals.
+Refresh your file browser (right click on the top) and you'll see that you now have copies of all of the zinnia templates locally stored. If you open `intro/templates/zinnia/base.html` you can edit all of the copy (static text) to match your name. Next you can open `intro/templates/zinnia/base.html` and comment out any sidebar widgets you aren't going to use (for example if you only have one user you may want to remove the authors widget. I recommend using `{% comment %}` and `{% endcomment %}` so that you can put them back in if you want them later (let's say you stop being such a loner and get a friend who wants to write on your blog). You can always go back to the zinnia github page or the zinnia source documentation on github to see the originals.
 
 Classes
 --------
