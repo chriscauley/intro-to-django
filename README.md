@@ -46,7 +46,7 @@ sudo pip install django
 And finally checkout the source material for this class. If you do this you can pull future changes when I update the site!
 
 ```bash
-git clone git@github.com:chriscauley/intro-to-django.git
+git clone http://github.com/chriscauley/intro-to-django.git
 cd intro-to-django
 ```
 
@@ -67,7 +67,8 @@ As you can see, django gives us a very boring looking test page to let us know i
 This page can be replaced by adding a url in `intro/urls.py`.
 
 ```python
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     (r'^$','intro.views.home'),
     # Snip!!
 )
@@ -110,46 +111,6 @@ admin.autodiscover()
 ```
 
 Uncomment `'django.contrib.admin'` in `INSTALLED_APPS` halfway down the file `intro/settings.py`. The admin is now visible on `/admin/`. 
-
-Bonus 3rd party app: sorl.thumbnail
---------
-
-* Add `sorl-thumbnail==11.12` to `requirements.txt`.
-
-* Run `$ sudo pip install -r requirements.txt`.
-
-* Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
-
-* run `$ python manage.py syncdb`
-
-* Change `base.html` to use this new app:
-
-```html
-{% load thumbnail %}
-<ul>
-  {% for photo in photos %}
-  <li>
-    <a href="{{ MEDIA_URL }}{{ photo.url }}">
-      {% thumbnail photo.src "200x200" crop="center" as im %}
-      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
-      {% endthumbnail %}
-    </a>
-    <p>
-      {{ photo.name }}, by {{ photo.credit }}
-    </p>
-    <p>
-      uploaded on {{ photo.uploaded }}
-    </p>
-  </li>
-  {% empty %}
-  <li>
-    There are no photos :(
-  </li>
-  {% endfor %}
-</ul>
-```
-
-Reload the page and the photos should appear as 200x200 cropped thumbnails instead of large photos.
 
 Zinna
 --------
@@ -1172,3 +1133,47 @@ Now if you're like , you've uploaded a file WAY too big to be shown on this page
 </div>
 {% endif %}
 ```
+
+OLD STUFF TO BE PUT BACK IN
+========
+
+Bonus 3rd party app: sorl.thumbnail
+--------
+
+* Add `sorl-thumbnail==11.12` to `requirements.txt`.
+
+* Run `$ sudo pip install -r requirements.txt`.
+
+* Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
+
+* run `$ python manage.py syncdb`
+
+* Change `base.html` to use this new app:
+
+```html
+{% load thumbnail %}
+<ul>
+  {% for photo in photos %}
+  <li>
+    <a href="{{ MEDIA_URL }}{{ photo.url }}">
+      {% thumbnail photo.src "200x200" crop="center" as im %}
+      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
+      {% endthumbnail %}
+    </a>
+    <p>
+      {{ photo.name }}, by {{ photo.credit }}
+    </p>
+    <p>
+      uploaded on {{ photo.uploaded }}
+    </p>
+  </li>
+  {% empty %}
+  <li>
+    There are no photos :(
+  </li>
+  {% endfor %}
+</ul>
+```
+
+Reload the page and the photos should appear as 200x200 cropped thumbnails instead of large photos.
+
