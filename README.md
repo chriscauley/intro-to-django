@@ -564,6 +564,7 @@ The ForeignKey connects a Photo to a PhotoSet. We marked it as `null=True,blank=
 Next add the following code to the admin file to make PhotoSet appear.
 
 ```python
+from django.contrib import admin
 from photo.models import PhotoSet, Photo
 
 admin.site.register(Photo)
@@ -578,9 +579,9 @@ from photo.models import Photo, PhotoSet
 
 def home(request):
     if request.user.is_authenticated():
-        photosets = Photoset.objects.all()
+        photosets = PhotoSet.objects.all()
     else:
-        photosets = Photoset.objects.filter(private=False)
+        photosets = PhotoSet.objects.filter(private=False)
     values = {
         'name': 'Sweetie!',
         'photosets': photosets,
@@ -615,7 +616,7 @@ Next we modify `intro/home.html` to show a list of the photosets instead of the 
 ```html
 {% extends "zinnia/base.html" %}
 
-{% block title %}{{ photoset.name }}{% endlock %}
+{% block title %}{{ photoset.name }}{% endblock %}
 
 
 {% block content %}
