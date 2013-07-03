@@ -545,6 +545,8 @@ def home(request):
 And inside `intro/templates/home.html` you can print the photos with a for loop
 
 ```html
+{% extends "zinnia/skeleton.html" %}
+
 {% block content %}
 <ul>
   {% for photo in photos %}
