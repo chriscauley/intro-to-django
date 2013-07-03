@@ -456,9 +456,11 @@ Anything in here will not be printed.<br />
     <td>
     - Useful for documentation and depracation.
     </td>
-    <tr>
+  </tr>
+  <tr>
     <td></td>
     <td>{# I am a comment #}</td>
+    <td></td>
     <td>
     - single line comments use {#  #}
     </td>
