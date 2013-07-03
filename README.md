@@ -58,7 +58,7 @@ Hello django
 The development runserver can be started in a terminal with the following command.
 
 ```bash
-$ python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8000
 ```
 
 You can now view the django app on `http://[websiteurl]:8000`
@@ -436,7 +436,7 @@ https://docs.djangoproject.com/en/dev/ref/templates/builtins/
 A custom photo model
 --------
 
-We're going to change Zinnia into a photo blog rather than a blog. To do this we'll first set up a few tables, to store photo information in the database. Start a new django app with `$ python manage.py startapp photo`. This creates a few files necessary to build an app in a folder called "photo". Add the following lines to `photo/models.py`. Don't worry about what a class is, for now just fake your way through it.
+We're going to change Zinnia into a photo blog rather than a blog. To do this we'll first set up a few tables, to store photo information in the database. Start a new django app with `python manage.py startapp photo`. This creates a few files necessary to build an app in a folder called "photo". Add the following lines to `photo/models.py`. Don't worry about what a class is, for now just fake your way through it.
 
 ```python
 from django.db import models
@@ -454,11 +454,13 @@ https://docs.djangoproject.com/en/dev/ref/models/fields/#field-types
 
 Lastly we need do create the photo table. Since we're going to be modifying the photo table, you'll want to add it to database migrations using south. This allows us to easily change the database.
 
+<!-- put me somewhere else!
 * Since south is included in "requirements.txt" it should already be installed when you ran `pip install -r requirements.txt`.
 
 * Add 'south' to the list of `INSTALLED_APPS` in `settings.py` (it should already be there if you're using this repository).
 
 * Add south to the database with `python manage.py syncdb`. 
+-->
 
 * Add `'photo'` to the `INSTALLED_APPS` tuple in `intro/settings.py`.
 
@@ -537,6 +539,12 @@ Photo sets
 Before we associate photos with blog articles, we need to understand ForeinKey relationships. So we're going to create a photoset that will store multiple photos. This uses a new field `models.ForeignKey`.
 
 ```python
+class PhotoSet(models.Model):
+    name = models.CharField(max_length='100')
+    private = models.BooleanField(default=False)
+    def __unicode__(self):
+        return self.name
+
 class Photo(models.Model):
     src = models.ImageField(upload_to='photos/')
     name = models.CharField(max_length='100')
@@ -545,19 +553,13 @@ class Photo(models.Model):
     photoset = models.ForeignKey(PhotoSet,null=True,blank=True)
     def __unicode__(self):
         return "A photo named " + self.name
-
-class PhotoSet(models.Model):
-    name = models.CharField(max_length='100')
-    private = models.BooleanField(default=False)
-    def __unicode__(self):
-        return self.name
 ```
 
 The ForeignKey connects a Photo to a PhotoSet. We marked it as `null=True,blank=True` because that means that you can leave this empty (not every photo must belong to a photoset). This time we can't just use `manage.py syncdb` to create the tables since we've modified the Photo which already exists. Instead we must create a migration using in two steps
 
-* create migration with `$ python manage.py schemamigration --auto photo`
+* create migration with `python manage.py schemamigration --auto photo`
 
-* run migration with `$ python manage.py migrate photo`
+* run migration with `python manage.py migrate photo`
 
 Next add the following code to the admin file to make PhotoSet appear.
 
