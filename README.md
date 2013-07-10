@@ -663,6 +663,144 @@ And now we need a `intro/photoset_detail.html` file.
 
 That's it for now. Next time we'll look into cropping photos and connecting photosets to blog articles.
 
+Night 3
+========
+
+EntryPhoto and EntryPhotoSet
+--------
+
+In order to connect the Entry and Photo models we'll need a table or column in the database to connect these. You could add a `model.ForeignKey(Entry)` field to both the Photo and PhotoSet. However, this would mean that every Photo or PhotoSet could be connected to only one Entry. Another option is adding a GenericForeignKey, which would allow you to connect a Photo to any other model (the hackerspace website currently uses this to connect PhotoSets to Entries, Events, Classes, and other models). We're going to create a lookup table that allows us to connect any Photo or PhotoSet to any one Entry. Modify photo/models.py to include the following lines. Anything starting with a # is a comment.
+
+```python
+#add this at the top with the other imports
+from zinnia.models import Entry
+
+#The Photo and PhotoSet models you've already made go here. Then beneath them add:
+
+class EntryPhoto(models.Model):
+    entry = models.ForeignKey(Entry)
+    photo = models.ForeignKey(Photo,unique=True)
+
+class EntryPhotoSet(models.Model):
+    entry = models.ForeignKey(Entry)
+    photoset = models.ForeignKey(PhotoSet,unique=True)
+```
+
+This creates two additional tables that connects a Photo or a PhotoSet to a Entry. From here on out I'm just going to do Photo because doing this with PhotoSet is nearly identical. Next we need to connect them in the admin. Previously we've just used `admin.site.register(Model)`. This uses the default admin.ModelAdmin when deciding how to display it in the django admin. Now we're going to import the Zinnia admin object for Entries, unregister it, modify the admin, and reregister it using our modified admin object. In photo/admin.py
+
+```python
+#Up top with the imports, import the two relevant Zinnia classes
+from zinnia.models import Entry
+from zinnia.admin import EntryAdmin
+
+admin.site.unregister(Entry)
+admin.site.register(Entry)
+```
+
+Now would be a good time to go back and look at the admin page for entries (something like /admin/zinnia/entry/). If you compare this to what it looks like before you unregistered the model you'll appreciate how much the EntryAdmin object is doing. Now delete the last line above and put the following in the same file.
+
+```python
+class EntryPhotoInline(admin.TabularInline):
+    maximum = 0
+    model = Photo
+
+class EntryAdmin(EntryAdmin):
+    inlines = [PhotoInline]
+
+admin.site.register(Entry,EntryAdmin)
+```
+
+Here we have added two `admin.TabularInline`s to EntryAdmin. You may need to restart your devserver. Now go to the Entry admin page again in your browser. It should yell at you for not adding the two new models to the database. No problem! Run these two commands (again) in the database, then restart your devsever.
+
+```bash
+python manage.py schemamigration --auto photo
+python manage.py migrate
+```
+
+Now you have a migration file and a two new tables in the database.
+
+Back to the templates
+========
+
+This is where it gets a little tricky. You could copy the zinnia view funcitons and modify them. You then would have to re-route the urls to point to your new function. This is dangerous because it makes it harder to upgrade zinnia in the future and is inserts a lot of python you didn't write (and most likely don't understand). Instead we're going to write a template filter to get the photo. Create a folder at `photo/templatetags/` and create an empty file called `photo/templatetags/__init__.py` new file called `photo/templatetags/photo_tags.py`. In `photo_tags.py` do this:
+
+```python
+from django import template
+from django.template.defaultfilters import stringfilter
+
+register = template.Library()
+
+@register.filter
+def get_photo(entry):
+    #check to see if an entryphoto exists
+    if entry.entryphoto:
+        return entry.entryphoto.photo
+```
+
+That's it! You can now `{% load photo_tags %}` in any template and have access to your filter. Let's start with `zinnia/_entry_detail_base.html`. At the top of the file add `{% load photo_tags %}`, then locate the title. We're going to put the Photo immediately above the title. By looking around the rest of the document you'll see `{{ object.blablablah }}`, so we can assume that the object is the entry.
+
+```html
+{% with photo=object|get_photo %}
+{% if photo %}
+<img src="{{ MEDIA_URL }}{{ photo.src }}" />
+{% endif %}
+{% endwith %}
+<h2 class="entry-title">
+  <a href="{{ object.get_absolute_url }}" title="{{ object.title }}" rel="bookmark">
+    {{ object.title }}
+  </a>
+</h2>
+```
+
+A photo should now appear above any blogs that you add them too. If you want, now would be a nice time to go back and add PhotoSets in the same way that we added Photos. Otherwise, move on to the next section.
+
+Bonus 3rd party app: sorl.thumbnail
+--------
+
+The following is how you install sorl. It's already been done in the background, but I'm leaving it here for reference.
+
+* Add `sorl-thumbnail==11.12` to `requirements.txt`.
+
+* Run `$ sudo pip install -r requirements.txt`.
+
+* Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
+
+* run `$ python manage.py syncdb`
+
+Aftr sorl is installed, replace photos any photos you want to crop with thumbnail tags. Start by adding `{% load thumbnail %}` at the top of the html file and then change what we did above.
+
+```html
+{% with photo=object|get_photo %}
+{% thumbnail photo.src "200x200" crop="center" as im %}
+<img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
+{% endthumbnail %}
+{% endif %}
+<h2 class="entry-title">
+  <a href="{{ object.get_absolute_url }}" title="{{ object.title }}" rel="bookmark">
+    {{ object.title }}
+  </a>
+</h2>
+```
+
+Reload the page and the photos should appear as 200x200 cropped thumbnails instead of large photos.
+
+Static files: Changing the logo
+--------
+
+After Django 1.3, static files (css, javascript, design images, etc.) are handled in a similar manner to templates. If you want to replace any of the static resources you can create a static folder for your project, copy the file from the zinnia source code, and then modify it. So start by making the static folder in `intro/static`. The static folder can be anywhere except for where the STATIC_ROOT is (in this case it is in `intro-to-django/static`). Once you've made that open `intro/settings.py` and add that to the STATICFILES_DIRS variable. Don't forget the trailing comma.
+
+```python
+# Additional locations of static files
+STATICFILES_DIRS = (
+    'intro/static',
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)
+```
+
+
+
 STOP HERE!
 ========
 
@@ -1136,47 +1274,4 @@ Now if you're like , you've uploaded a file WAY too big to be shown on this page
 </div>
 {% endif %}
 ```
-
-OLD STUFF TO BE PUT BACK IN
-========
-
-Bonus 3rd party app: sorl.thumbnail
---------
-
-* Add `sorl-thumbnail==11.12` to `requirements.txt`.
-
-* Run `$ sudo pip install -r requirements.txt`.
-
-* Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
-
-* run `$ python manage.py syncdb`
-
-* Change `base.html` to use this new app:
-
-```html
-{% load thumbnail %}
-<ul>
-  {% for photo in photos %}
-  <li>
-    <a href="{{ MEDIA_URL }}{{ photo.url }}">
-      {% thumbnail photo.src "200x200" crop="center" as im %}
-      <img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}" alt="{{ photo.name }}" />
-      {% endthumbnail %}
-    </a>
-    <p>
-      {{ photo.name }}, by {{ photo.credit }}
-    </p>
-    <p>
-      uploaded on {{ photo.uploaded }}
-    </p>
-  </li>
-  {% empty %}
-  <li>
-    There are no photos :(
-  </li>
-  {% endfor %}
-</ul>
-```
-
-Reload the page and the photos should appear as 200x200 cropped thumbnails instead of large photos.
 
