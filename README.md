@@ -678,12 +678,12 @@ from zinnia.models import Entry
 #The Photo and PhotoSet models you've already made go here. Then beneath them add:
 
 class EntryPhoto(models.Model):
-    entry = models.ForeignKey(Entry)
-    photo = models.ForeignKey(Photo,unique=True)
+    entry = models.ForeignKey(Entry,unique=True)
+    photo = models.ForeignKey(Photo)
 
 class EntryPhotoSet(models.Model):
-    entry = models.ForeignKey(Entry)
-    photoset = models.ForeignKey(PhotoSet,unique=True)
+    entry = models.ForeignKey(Entry,unique=True)
+    photoset = models.ForeignKey(PhotoSet)
 ```
 
 This creates two additional tables that connects a Photo or a PhotoSet to a Entry. From here on out I'm just going to do Photo because doing this with PhotoSet is nearly identical. Next we need to connect them in the admin. Previously we've just used `admin.site.register(Model)`. This uses the default admin.ModelAdmin when deciding how to display it in the django admin. Now we're going to import the Zinnia admin object for Entries, unregister it, modify the admin, and reregister it using our modified admin object. In photo/admin.py
@@ -701,23 +701,23 @@ Now would be a good time to go back and look at the admin page for entries (some
 
 ```python
 class EntryPhotoInline(admin.TabularInline):
-    maximum = 0
-    model = Photo
+    maxi_num = 1
+    model = EntryPhoto
 
 class EntryAdmin(EntryAdmin):
-    inlines = [PhotoInline]
+    inlines = [EntryPhotoInline]
 
 admin.site.register(Entry,EntryAdmin)
 ```
 
-Here we have added two `admin.TabularInline`s to EntryAdmin. You may need to restart your devserver. Now go to the Entry admin page again in your browser. It should yell at you for not adding the two new models to the database. No problem! Run these two commands (again) in the database, then restart your devsever.
+Here we have added an `admin.TabularInline` to EntryAdmin. The `maximum = 1` line ensures that we will have only one photo per post, but we could add as many as we want. Now go to the Entry admin page again in your browser. It should yell at you for not adding the two new models to the database. No problem! Run these two commands (again) in the database, then restart your devsever.
 
 ```bash
 python manage.py schemamigration --auto photo
 python manage.py migrate
 ```
 
-Now you have a migration file and a two new tables in the database.
+Now you have a migration file and a two new tables in the database. Go into the admin and add a photo to each of the blogs entries. At the bottom of each Entry page you'll see a new row that you can use to add connect a photo to it. 
 
 Back to the templates
 ========
@@ -737,7 +737,7 @@ def get_photo(entry):
         return entry.entryphoto.photo
 ```
 
-That's it! You can now `{% load photo_tags %}` in any template and have access to your filter. Let's start with `zinnia/_entry_detail_base.html`. At the top of the file add `{% load photo_tags %}`, then locate the title. We're going to put the Photo immediately above the title. By looking around the rest of the document you'll see `{{ object.blablablah }}`, so we can assume that the object is the entry.
+That's it! You can now `{% load photo_tags %}` in any template and have access to your filter. Let's start with `zinnia/_entry_detail_base.html`. At the top of the file add `{% load photo_tags %}`. We're going to put the Photo immediately above the h1 tag that displays the `{{ etnry.title }}`. By looking around the rest of the document you'll see `{{ object.blablablah }}`, so we can assume that the object is the entry.
 
 ```html
 {% with photo=object|get_photo %}
@@ -757,11 +757,7 @@ A photo should now appear above any blogs that you add them too. If you want, no
 Bonus 3rd party app: sorl.thumbnail
 --------
 
-The following is how you install sorl. It's already been done in the background, but I'm leaving it here for reference.
-
-* Add `sorl-thumbnail==11.12` to `requirements.txt`.
-
-* Run `$ sudo pip install -r requirements.txt`.
+I've already installed a thumbnail library, but it needs to be added to your project.
 
 * Add `sorl.thumbnail` to `INSTALLED_APPS` in the settings file.
 
@@ -799,7 +795,16 @@ STATICFILES_DIRS = (
 )
 ```
 
+Now go back to the blog in a browser, right click on the image and select "inspect element". By looking at the css for the h1 you should be able to see that the logo is actually a background image defined in a file called '/static/zinnia/css/screen.css' (you can find this location by mousing over the file name). The following css tells us that the logo is located in '/static/zinnia/img/logo.png'.
 
+```css
+.zinnia #header h1 {
+    background: transparent url('../img/logo.png?1355081940') no-repeat scroll left center;
+    padding-left: 1.5em;
+}
+```
+
+Don't worry about the 1355... number, that's just a timestamp. Create a folder in 
 
 STOP HERE!
 ========
