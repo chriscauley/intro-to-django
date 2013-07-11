@@ -690,6 +690,7 @@ This creates two additional tables that connects a Photo or a PhotoSet to a Entr
 
 ```python
 #Up top with the imports, import the two relevant Zinnia classes
+from photo.models import EntryPhoto
 from zinnia.models import Entry
 from zinnia.admin import EntryAdmin
 
@@ -700,6 +701,7 @@ admin.site.register(Entry)
 Now would be a good time to go back and look at the admin page for entries (something like /admin/zinnia/entry/). If you compare this to what it looks like before you unregistered the model you'll appreciate how much the EntryAdmin object is doing. Now delete the last line above and put the following in the same file.
 
 ```python
+
 class EntryPhotoInline(admin.TabularInline):
     maxi_num = 1
     model = EntryPhoto
@@ -710,7 +712,7 @@ class EntryAdmin(EntryAdmin):
 admin.site.register(Entry,EntryAdmin)
 ```
 
-Here we have added an `admin.TabularInline` to EntryAdmin. The `maximum = 1` line ensures that we will have only one photo per post, but we could add as many as we want. Now go to the Entry admin page again in your browser. It should yell at you for not adding the two new models to the database. No problem! Run these two commands (again) in the database, then restart your devsever.
+Here we have added an `admin.TabularInline` to EntryAdmin. The `max_num = 1` line ensures that we will have only one photo per post, but we could add as many as we want. Now go to the Entry admin page again in your browser. It should yell at you for not adding the two new models to the database. No problem! Run these two commands (again) in the database, then restart your devsever.
 
 ```bash
 python manage.py schemamigration --auto photo
@@ -733,8 +735,9 @@ register = template.Library()
 @register.filter
 def get_photo(entry):
     #check to see if an entryphoto exists
-    if entry.entryphoto:
-        return entry.entryphoto.photo
+    if entry.entryphoto_set.all():
+        return entry.entryphoto_set.all()[0].photo
+
 ```
 
 That's it! You can now `{% load photo_tags %}` in any template and have access to your filter. Let's start with `zinnia/_entry_detail_base.html`. At the top of the file add `{% load photo_tags %}`. We're going to put the Photo immediately above the h1 tag that displays the `{{ etnry.title }}`. By looking around the rest of the document you'll see `{{ object.blablablah }}`, so we can assume that the object is the entry.
